@@ -14,7 +14,7 @@ def main():
     signal.signal(signal.SIGINT, terminate_program)
 
     # rob = robobo.HardwareRobobo(camera=True).connect(address="192.168.1.5")
-    rob = robobo.SimulationRobobo().connect(address='192.168.1.10', port=19997)
+    rob = robobo.SimulationRobobo().connect(address='192.168.1.101', port=19997)
 
     rob.play_simulation()
     # rob.pause_simulation()
@@ -52,7 +52,7 @@ def main():
     rob.pause_simulation()
     print("Robobo collected {} food".format(rob.collected_food()))
 
-    # Stopping the simualtion resets the environment 
+    # Stopping the simulation resets the environment
     rob.stop_world()
 
 if __name__ == "__main__":
