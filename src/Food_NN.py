@@ -7,15 +7,25 @@ import signal
 import time
 import numpy as np
 
+# TensorFlow and tf.keras
+import tensorflow as tf
+from tensorflow import keras
+
+print(tf.__version__)
+
 
 if __name__ == "__main__":
 
-    rob = robobo.SimulationRobobo().connect(address='192.168.1.101', port=19997)
+    rob = robobo.SimulationRobobo().connect(address='130.37.245.223', port=19997)
     # rob = robobo.HardwareRobobo(camera=True).connect(address="192.168.1.16")
 
     rob.play_simulation()
+
     # rob.set_phone_pan(343, 100)
     # rob.set_phone_tilt(109, 100)
+    rob.set_phone_tilt(32, 100)
+
+    # plat op zijn rug
     # rob.set_phone_pan(11, 100)
     # rob.set_phone_tilt(26, 100)
 
@@ -106,12 +116,12 @@ if __name__ == "__main__":
 
     images = []
 
-    for i in range(100):
+    for i in range(200):
 
         image = rob.get_image_front()
         images.append(image)
         for i, image in enumerate(images):
-            cv2.imwrite('./src/images/test_picture-' + str(i) + ".png", image)
+            cv2.imwrite('./src/images/img_p2-' + str(i) + ".png", image)
 
 
         # Scaling IR signal
