@@ -11,12 +11,6 @@ import os
 import tensorflow as tf
 from tensorflow import keras
 
-from keras.models import model_from_json, load_model
-from keras.preprocessing.image import ImageDataGenerator
-
-from IPython.display import display
-from PIL import Image
-
 from keras.models import Sequential, model_from_json, load_model
 from keras.layers.convolutional import Conv2D
 from keras.layers.convolutional import MaxPooling2D
@@ -85,16 +79,19 @@ if __name__ == "__main__":
     loaded_model.save('model_num.hdf5')
     loaded_model = load_model('model_num.hdf5')
 
-    rob = robobo.SimulationRobobo().connect(address='130.37.245.223', port=19997)
-    # rob = robobo.HardwareRobobo(camera=True).connect(address="192.168.1.16")
+    # rob = robobo.SimulationRobobo().connect(address='130.37.245.223', port=19997)
+    rob = robobo.HardwareRobobo(camera=True).connect(address="172.20.10.11")
 
-    rob.play_simulation()
+    # rob.play_simulation()
 
+    # Default?
     # rob.set_phone_pan(343, 100)
     # rob.set_phone_tilt(109, 100)
-    rob.set_phone_tilt(32, 100)
 
-    # plat op zijn rug
+    # Good settings for simulator
+    # rob.set_phone_tilt(32, 100)
+
+    # On its back
     # rob.set_phone_pan(11, 100)
     # rob.set_phone_tilt(26, 100)
 

@@ -2,16 +2,14 @@
 from __future__ import print_function
 import robobo
 import time
+import cv2
 import numpy as np
 
 if __name__ == "__main__":
 
-    rob = robobo.SimulationRobobo().connect(address='192.168.1.103', port=19997)
-    #rob = robobo.HardwareRobobo(camera=False).connect(address="192.168.1.16")
+    rob = robobo.HardwareRobobo(camera=True).connect(address="192.168.1.16")
 
-    rob.play_simulation()
-
-    #rob.set_emotion('happy')
+    rob.set_phone_tilt(109, 100)
 
     time.sleep(0.1)
 
@@ -103,7 +101,16 @@ if __name__ == "__main__":
             return 1 / (1 + np.exp(-s))
 
 
-    for i in range(1000):
+    images = []
+
+    for i in range(100):
+
+        image = rob.get_image_front()
+        # print(image)
+
+        images.append(image)
+        for i, image in enumerate(images):
+            cv2.imwrite('./src/images/HW_dataset/HW_p18-' + str(i) + ".png", image)
 
         # Scaling IR signal
         x = np.array((rob.read_irs()), dtype=float)
@@ -117,7 +124,7 @@ if __name__ == "__main__":
         Neural_Network()
 
         if 0 <= o < 0.1667:
-            rob.move(20, 20, 1000)
+            rob.move(20, 20, 2000)
             print("Straight")
             time.sleep(0.1)
 
@@ -142,7 +149,7 @@ if __name__ == "__main__":
             time.sleep(0.1)
 
         elif 0.8335 <= o <= 1:
-            rob.move(-20, -20, 1000)
+            rob.move(-15, -15, 2000)
             print("Backwards")
             time.sleep(0.1)
 
