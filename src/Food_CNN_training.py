@@ -16,7 +16,10 @@ from PIL import Image
 
 import numpy as np
 from keras.preprocessing import image
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
 
 # Initialize the CNN
 classifier = Sequential()
@@ -43,14 +46,14 @@ train_datagen = ImageDataGenerator(rescale=1./255)
 test_datagen = ImageDataGenerator(rescale=1./255)
 
 training_set = train_datagen.flow_from_directory(
-    'images/dataset/training_set',
+    './src/images/dataset/training_set',
     target_size = (64, 64),
     batch_size = 32, #Number of observations per batch
     class_mode = 'categorical'
 )
 
 test_set = test_datagen.flow_from_directory(
-    'images/dataset/test_set',
+    './src/images/dataset/test_set',
     target_size = (64, 64),
     batch_size = 32, #Number of observations per batch
     class_mode = 'categorical'
@@ -60,9 +63,9 @@ test_set = test_datagen.flow_from_directory(
 history = classifier.fit_generator(
     training_set,
     steps_per_epoch = 660, #Number of training images
-    epochs = 10, #1 epoch means neural network is trained on every training examples in 1 pass --> training cycle
+    epochs = 1, #1 epoch means neural network is trained on every training examples in 1 pass --> training cycle
     validation_data = test_set,
-    validation_steps = 66
+    validation_steps = 2
 )
 
 # Get training and test loss histories
@@ -81,29 +84,29 @@ fig_Loss.suptitle('Loss History', fontsize=18)
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.show();
-fig_Loss.savefig('fig_LossHistory64.png')
+fig_Loss.savefig('fig_LossHistory(5).png')
 
 # serialize model to JSON
 # the keras model which is trained is defined as 'model' in this example
 model_json = classifier.to_json()
-with open("CNN_model.json", "w") as json_file:
+with open("CNN_model(5).json", "w") as json_file:
     json_file.write(model_json)
 # serialize weights to HDF5
-classifier.save_weights("CNN_weights.h5")
+classifier.save_weights("CNN_weights(5).h5")
 print("Saved model to disk")
 
 
 # Test a random image
 # Go 45 right
-test_image = image.load_img('images/p2_fail/img_p2-190.png', target_size = (64, 64))
+test_image = image.load_img('./src/images/p2_fail/img_p2-190.png', target_size = (64, 64))
 test_image = image.img_to_array(test_image)
-test_image = np.expand_dims(test_image, axis = 0)
+test_image = np.expand_dims(test_image, axis = 0) # Add fourth dimension
 # Go straight
-test_image2 = image.load_img('images/p2_fail/img_p2-1.png', target_size = (64, 64))
+test_image2 = image.load_img('./src/images/p2_fail/img_p2-1.png', target_size = (64, 64))
 test_image2 = image.img_to_array(test_image2)
 test_image2 = np.expand_dims(test_image2, axis = 0)
 # Go backward
-test_image3 = image.load_img('images/p2_fail/img_p2-36.png', target_size = (64, 64))
+test_image3 = image.load_img('./src/images/p2_fail/img_p2-36.png', target_size = (64, 64))
 test_image3 = image.img_to_array(test_image3)
 test_image3 = np.expand_dims(test_image3, axis = 0)
 
@@ -116,6 +119,7 @@ print(result2)
 print(result3)
 
 training_set.class_indices
+
 if result[0][0] == 1:
     prediction = 'straight'
 elif result[0][1] == 1 :
