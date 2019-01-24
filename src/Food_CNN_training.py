@@ -68,7 +68,7 @@ callbacks_list = [checkpoint]
 # Train convolutional neural network
 history = classifier.fit_generator(
     training_set,
-    steps_per_epoch = 660, #Number of training images
+    steps_per_epoch = 681, #Number of training images
     epochs = 3, #1 epoch means neural network is trained on every training examples in 1 pass --> training cycle
     validation_data = test_set,
     validation_steps = 1
