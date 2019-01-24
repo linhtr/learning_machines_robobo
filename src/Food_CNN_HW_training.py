@@ -63,9 +63,9 @@ test_set = test_datagen.flow_from_directory(
 history = classifier.fit_generator(
     training_set,
     steps_per_epoch = 412, #Number of training images
-    epochs = 10, #1 epoch means neural network is trained on every training examples in 1 pass --> training cycle
+    epochs = 2, #1 epoch means neural network is trained on every training examples in 1 pass --> training cycle
     validation_data = test_set,
-    validation_steps = 1 #suggestion: validation_steps = TotalvalidationSamples / ValidationBatchSize
+    validation_steps = 1 #suggestion: validation_steps = TotalvalidationSamples / ValidationBatchSize (103:32) of 103:103
 )
 
 # Get training and test loss histories
