@@ -48,14 +48,14 @@ test_datagen = ImageDataGenerator(rescale=1./255)
 training_set = train_datagen.flow_from_directory(
     './images/HW_dataset/training_set',
     target_size = (64, 64),
-    batch_size = 32, #Number of observations per batch
+    batch_size = 412, #Number of observations per batch
     class_mode = 'categorical'
 )
 
 test_set = test_datagen.flow_from_directory(
     './images/HW_dataset/test_set',
     target_size = (64, 64),
-    batch_size = 32, #Number of observations per batch
+    batch_size = 103, #Number of observations per batch
     class_mode = 'categorical'
 )
 
@@ -84,15 +84,15 @@ fig_Loss.suptitle('Loss History', fontsize=18)
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.show();
-fig_Loss.savefig('fig_HW_LossHistory(3).png')
+fig_Loss.savefig('fig_HW_LossHistory(5).png')
 
 # serialize model to JSON
 # the keras model which is trained is defined as 'model' in this example
 model_json = classifier.to_json()
-with open("CNN_HW_model(3).json", "w") as json_file:
+with open("CNN_HW_model(5).json", "w") as json_file:
     json_file.write(model_json)
 # serialize weights to HDF5
-classifier.save_weights("CNN_HW_weights(3).h5")
+classifier.save_weights("CNN_HW_weights(5).h5")
 print("Saved model to disk")
 
 

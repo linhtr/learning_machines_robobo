@@ -27,69 +27,69 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-# Initialize the CNN
-classifier = Sequential()
-
-# Step 1 - Convolution
-#number of filters (32), shape for each filter (3, 3), input shape (64, 64), type of image(RGB(3) or B/W), activation function
-classifier.add(Conv2D(32, (3, 3), input_shape = (64, 64, 3), activation = "relu"))
-
-# Step 2 - Pooling
-classifier.add(MaxPooling2D(pool_size = (2, 2)))
-
-# Step 3 - Flattening
-classifier.add(Flatten())
-
-# Step 4 - Full Connection
-classifier.add(Dense(activation = "relu", units = 128)) #output_dim = 128
-classifier.add(Dense(activation = "softmax", units = 6)) #output_dim = 6
-
-# Compiling the CNN
-classifier.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['accuracy'])
-
-# Fitting the CNN to the images
-train_datagen = ImageDataGenerator(rescale=1./255)
-test_datagen = ImageDataGenerator(rescale=1./255)
-
-training_set = train_datagen.flow_from_directory(
-    './src/images/dataset/training_set',
-    target_size = (64, 64),
-    batch_size = 32, #Number of observations per batch
-    class_mode = 'categorical'
-)
-
-test_set = test_datagen.flow_from_directory(
-    './src/images/dataset/test_set',
-    target_size = (64, 64),
-    batch_size = 32, #Number of observations per batch
-    class_mode = 'categorical'
-)
+# # Initialize the CNN
+# classifier = Sequential()
+#
+# # Step 1 - Convolution
+# #number of filters (32), shape for each filter (3, 3), input shape (64, 64), type of image(RGB(3) or B/W), activation function
+# classifier.add(Conv2D(32, (3, 3), input_shape = (64, 64, 3), activation = "relu"))
+#
+# # Step 2 - Pooling
+# classifier.add(MaxPooling2D(pool_size = (2, 2)))
+#
+# # Step 3 - Flattening
+# classifier.add(Flatten())
+#
+# # Step 4 - Full Connection
+# classifier.add(Dense(activation = "relu", units = 128)) #output_dim = 128
+# classifier.add(Dense(activation = "softmax", units = 6)) #output_dim = 6
+#
+# # Compiling the CNN
+# classifier.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['accuracy'])
+#
+# # Fitting the CNN to the images
+# train_datagen = ImageDataGenerator(rescale=1./255)
+# test_datagen = ImageDataGenerator(rescale=1./255)
+#
+# training_set = train_datagen.flow_from_directory(
+#     './src/images/dataset/training_set',
+#     target_size = (64, 64),
+#     batch_size = 32, #Number of observations per batch
+#     class_mode = 'categorical'
+# )
+#
+# test_set = test_datagen.flow_from_directory(
+#     './src/images/dataset/test_set',
+#     target_size = (64, 64),
+#     batch_size = 32, #Number of observations per batch
+#     class_mode = 'categorical'
+# )
 
 
 if __name__ == "__main__":
 
     # load json and create model
-    json_file = open('./src/CNN_model(3).json', 'r')
-    loaded_model_json = json_file.read()
-    json_file.close()
-    loaded_model = model_from_json(loaded_model_json)
+    # json_file = open('./src/CNN_model(6).json', 'r')
+    # loaded_model_json = json_file.read()
+    # json_file.close()
+    # loaded_model = model_from_json(loaded_model_json)
     # load weights into new model
-    loaded_model.load_weights("./src/CNN_weights(3).h5")
-    print("Loaded model from disk")
-    loaded_model.save('model_num.hdf5')
-    loaded_model = load_model('model_num.hdf5')
+    # loaded_model.load_weights("./src/CNN_weights(3).h5")
+    # print("Loaded model from disk")
+    # loaded_model.save('model_num.hdf5')
+    # loaded_model = load_model('model_num.hdf5')
+    load_model = load_model('./src/CNN_Sim_weights(6)03-0.33.hdf5')
 
-    # rob = robobo.SimulationRobobo().connect(address='130.37.245.223', port=19997)
-    rob = robobo.HardwareRobobo(camera=True).connect(address="172.20.10.11")
+    rob = robobo.SimulationRobobo().connect(address='130.37.245.223', port=19997)
 
-    # rob.play_simulation()
+    rob.play_simulation()
 
     # Default?
     # rob.set_phone_pan(343, 100)
     # rob.set_phone_tilt(109, 100)
 
     # Good settings for simulator
-    # rob.set_phone_tilt(32, 100)
+    rob.set_phone_tilt(32, 100)
 
     # On its back
     # rob.set_phone_pan(11, 100)
@@ -132,37 +132,30 @@ if __name__ == "__main__":
 
     for i in range(200):
 
-        test_image = rob.get_image_front()
-        # print(image)
+        predict_image = rob.get_image_front()
+        # print(predict_image)
 
-        # images.append(image)
-        # for i, image in enumerate(images):
+        # images.append(predict_image)
+        # for i, predict_image in enumerate(images):
         #     cv2.imwrite('./src/images/run/img-' + str(i) + ".png", image)
 
-        cv2.imwrite('./src/images/run/img-0.png', test_image)
-        test_image = cv2.imread('./src/images/run/img-0.png')
-        # print(test_image)
-
+        cv2.imwrite('./src/images/run/img-0.png', predict_image)
+        predict_image = cv2.imread('./src/images/run/img-0.png')
+        # print(predict_image)
 
         # image = rob.get_image_front().reshape([-1, 64, 64, 3])
         # print(image)
         # image = image.load_img(image, target_size=(64, 64))
 
+        predict_image = cv2.resize(predict_image, (64, 64))
+        predict_image = predict_image[..., ::-1].astype(np.float32) / 255.0
+        predict_image = image.img_to_array(predict_image)
+        predict_image = np.expand_dims(predict_image, axis=0)  # Add fourth dimension
 
-        # test_image = cv2.imread('./src/images/run/img-0.png', target_size=(64,64))
-        test_image = cv2.resize(test_image, (64, 64))
-        test_image = test_image[..., ::-1].astype(np.float32) / 255.0
-        # test_image = image.load_img(test_image, target_size=(64, 64))
-        test_image = image.img_to_array(test_image)
-        test_image = np.expand_dims(test_image, axis=0) # Add fourth dimension
-
-        output = loaded_model.predict_classes(test_image)
+        output = loaded_model.predict_classes(predict_image)
         print("Predicted output:" + str(output))
 
-        # output = loaded_model.predict_classes(rob.get_image_front())
-        # print("Predicted output:" + str(output))
-
-        training_set.class_indices
+        # training_set.class_indices
         if output[0] == 0:
             prediction = 'straight'
             actionStraightForward()

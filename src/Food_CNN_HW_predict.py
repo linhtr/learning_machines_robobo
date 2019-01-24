@@ -69,17 +69,17 @@ test_set = test_datagen.flow_from_directory(
 if __name__ == "__main__":
 
     # load json and create model
-    json_file = open('./src/CNN_HW_model(2).json', 'r')
+    json_file = open('./src/CNN_HW_model.json', 'r')
     loaded_model_json = json_file.read()
     json_file.close()
     loaded_model = model_from_json(loaded_model_json)
     # load weights into new model
-    loaded_model.load_weights("./src/CNN_HW_weights(2).h5")
+    loaded_model.load_weights("./src/CNN_HW_weights.h5")
     print("Loaded model from disk")
     loaded_model.save('model_HW_num.hdf5')
     loaded_model = load_model('model_HW_num.hdf5')
 
-    rob = robobo.HardwareRobobo(camera=True).connect(address="192.168.1.16")
+    rob = robobo.HardwareRobobo(camera=True).connect(address="192.168.1.8")
 
     rob.set_phone_tilt(109, 100)
 
@@ -120,10 +120,10 @@ if __name__ == "__main__":
     for i in range(200):
 
         predict_image = rob.get_image_front()
-        # print(image)
+        # print(predict_image)
 
-        # images.append(image)
-        # for i, image in enumerate(images):
+        # images.append(predict_image)
+        # for i, predict_image in enumerate(images):
         #     cv2.imwrite('./src/images/run/img-' + str(i) + ".png", image)
 
         cv2.imwrite('./src/images/run/img-0.png', predict_image)

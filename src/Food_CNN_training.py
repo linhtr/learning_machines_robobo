@@ -10,6 +10,7 @@ from keras.layers.convolutional import MaxPooling2D
 from keras.layers import Flatten
 from keras.layers import Dense
 from keras.preprocessing.image import ImageDataGenerator
+from keras.callbacks import ModelCheckpoint
 
 from IPython.display import display
 from PIL import Image
@@ -46,26 +47,32 @@ train_datagen = ImageDataGenerator(rescale=1./255)
 test_datagen = ImageDataGenerator(rescale=1./255)
 
 training_set = train_datagen.flow_from_directory(
-    './src/images/dataset/training_set',
+    './images/dataset/training_set',
     target_size = (64, 64),
     batch_size = 32, #Number of observations per batch
     class_mode = 'categorical'
 )
 
 test_set = test_datagen.flow_from_directory(
-    './src/images/dataset/test_set',
+    './images/dataset/test_set',
     target_size = (64, 64),
     batch_size = 32, #Number of observations per batch
     class_mode = 'categorical'
 )
 
+# Checkpoint
+filepath = "CNN_Sim_weights(6){epoch:02d}-{val_loss:.2f}.hdf5"
+checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=0, save_best_only=False, save_weights_only=False, mode='auto', period=1)
+callbacks_list = [checkpoint]
+
 # Train convolutional neural network
 history = classifier.fit_generator(
     training_set,
-    steps_per_epoch = 660, #Number of training images
-    epochs = 1, #1 epoch means neural network is trained on every training examples in 1 pass --> training cycle
+    steps_per_epoch = 681, #Number of training images
+    epochs = 10, #1 epoch means neural network is trained on every training examples in 1 pass --> training cycle
     validation_data = test_set,
-    validation_steps = 2
+    validation_steps = 1, #suggestion: validation_steps = TotalvalidationSamples / ValidationBatchSize
+    callbacks=callbacks_list
 )
 
 # Get training and test loss histories
@@ -84,29 +91,29 @@ fig_Loss.suptitle('Loss History', fontsize=18)
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.show();
-fig_Loss.savefig('fig_LossHistory(5).png')
+fig_Loss.savefig('fig_LossHistory(6).png')
 
 # serialize model to JSON
 # the keras model which is trained is defined as 'model' in this example
 model_json = classifier.to_json()
-with open("CNN_model(5).json", "w") as json_file:
+with open("CNN_model(6).json", "w") as json_file:
     json_file.write(model_json)
 # serialize weights to HDF5
-classifier.save_weights("CNN_weights(5).h5")
+classifier.save_weights("CNN_weights(6).h5")
 print("Saved model to disk")
 
 
 # Test a random image
 # Go 45 right
-test_image = image.load_img('./src/images/p2_fail/img_p2-190.png', target_size = (64, 64))
+test_image = image.load_img('./images/p2_fail/img_p2-190.png', target_size = (64, 64))
 test_image = image.img_to_array(test_image)
 test_image = np.expand_dims(test_image, axis = 0) # Add fourth dimension
 # Go straight
-test_image2 = image.load_img('./src/images/p2_fail/img_p2-1.png', target_size = (64, 64))
+test_image2 = image.load_img('./images/p2_fail/img_p2-1.png', target_size = (64, 64))
 test_image2 = image.img_to_array(test_image2)
 test_image2 = np.expand_dims(test_image2, axis = 0)
 # Go backward
-test_image3 = image.load_img('./src/images/p2_fail/img_p2-36.png', target_size = (64, 64))
+test_image3 = image.load_img('./images/p2_fail/img_p2-36.png', target_size = (64, 64))
 test_image3 = image.img_to_array(test_image3)
 test_image3 = np.expand_dims(test_image3, axis = 0)
 
