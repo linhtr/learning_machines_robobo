@@ -12,15 +12,30 @@ class SimulationRobobo(Robobo):
     def __init__(self, number=""):
         self._clientID = None
         self._value_number = number
-
+    
     def connect(self, address='127.0.0.1', port=19999):
         vrep.simxFinish(-1)  # just in case, close all opened connections
         self._clientID = vrep.simxStart(address, port, True, True, 5000, 5)  # Connect to V-REP
         if self._clientID >= 0: #  and clientID_0 != -1:
+            self.wait_for_ping()
             print('Connected to remote API server: client id {}'.format(self._clientID))
         else:
             raise VREPCommunicationError('Failed connecting to remote API server')
 
+        get_handles_timeout = 120.0
+
+        startTime = time.time()
+        while time.time() - startTime < get_handles_timeout:
+            try:
+                self.initialize_handles()
+                return self
+            except vrep.VrepApiError as _e:
+                print("Handle initialization failed, retrying.")
+                time.sleep(0.05)
+
+        return False
+
+    def initialize_handles(self):
         self._RightMotor = self._vrep_get_object_handle('Right_Motor{}'.format(self._value_number), vrep.simx_opmode_blocking)
         self._LeftMotor = self._vrep_get_object_handle('Left_Motor{}'.format(self._value_number), vrep.simx_opmode_blocking)
         self._Robobo = self._vrep_get_object_handle('Robobo{}'.format(self._value_number), vrep.simx_opmode_blocking)
@@ -31,16 +46,16 @@ class SimulationRobobo(Robobo):
         self._IrFrontRR = self._vrep_get_object_handle('Ir_Front_RR{}'.format(self._value_number), vrep.simx_opmode_blocking)
         self._IrBackL = self._vrep_get_object_handle('Ir_Back_L{}'.format(self._value_number), vrep.simx_opmode_blocking)
         self._IrBackLFloor = self._vrep_get_object_handle('Ir_Back_L_Floor{}'.format(self._value_number),
-                                                              vrep.simx_opmode_blocking)
+                                                            vrep.simx_opmode_blocking)
         self._IrBackR = self._vrep_get_object_handle('Ir_Back_R{}'.format(self._value_number), vrep.simx_opmode_blocking)
         self._IrBackRFloor = self._vrep_get_object_handle('Ir_Back_R_Floor{}'.format(self._value_number),
-                                                              vrep.simx_opmode_blocking)
+                                                            vrep.simx_opmode_blocking)
         self._IrFrontL = self._vrep_get_object_handle('Ir_Front_L{}'.format(self._value_number), vrep.simx_opmode_blocking)
         self._IrFrontLFloor = self._vrep_get_object_handle('Ir_Front_L_Floor{}'.format(self._value_number),
-                                                               vrep.simx_opmode_blocking)
+                                                            vrep.simx_opmode_blocking)
         self._IrFrontR = self._vrep_get_object_handle('Ir_Front_R{}'.format(self._value_number), vrep.simx_opmode_blocking)
         self._IrFrontRFloor = self._vrep_get_object_handle('Ir_Front_R_Floor{}'.format(self._value_number),
-                                                               vrep.simx_opmode_blocking)
+                                                            vrep.simx_opmode_blocking)
         self._TiltMotor = self._vrep_get_object_handle('Tilt_Motor{}'.format(self._value_number), vrep.simx_opmode_blocking)
         self._PanMotor = self._vrep_get_object_handle('Pan_Motor{}'.format(self._value_number), vrep.simx_opmode_blocking)
         self._FrontalCamera = self._vrep_get_object_handle('Frontal_Camera{}'.format(self._value_number), vrep.simx_opmode_blocking)
@@ -67,8 +82,21 @@ class SimulationRobobo(Robobo):
         # read a first value in buffer mode
         self._vrep_get_vision_sensor_image_ignore_error(self._FrontalCamera, vrep.simx_opmode_streaming)
 
-        self._vrep_get_ping_time()
-        return self
+        self.wait_for_ping()
+
+    def wait_for_ping(self, timeout_seconds=120.0):
+        startTime = time.time()
+        while time.time() - startTime < timeout_seconds:
+            try:
+                self._vrep_get_ping_time()
+                # print("check success")
+                return True
+            except vrep.VrepApiError as _e:
+                # print("check failed")
+                time.sleep(0.05)
+        
+        print("{} seconds passed with ping not coming online, you may expericence problems with the connection".format(timeout_seconds))
+        return False
 
     def _vrep_get_ping_time(self):
         return vrep.unwrap_vrep(vrep.simxGetPingTime(self._clientID))
@@ -85,7 +113,7 @@ class SimulationRobobo(Robobo):
         except vrep.error.VrepApiError as error:
             if error.ret_code is not vrep.simx_return_novalue_flag:
                 raise
-
+        
     def _vrep_get_vision_sensor_image(self, camera_handle, opmode=vrep.simx_opmode_buffer, a=0):
         return vrep.unwrap_vrep(vrep.simxGetVisionSensorImage(self._clientID, camera_handle, a, opmode))
 
@@ -115,7 +143,7 @@ class SimulationRobobo(Robobo):
 
         self._vrep_set_joint_target_velocity(self._LeftMotor, left, vrep.simx_opmode_oneshot)
         self._vrep_set_joint_target_velocity(self._RightMotor, right, vrep.simx_opmode_oneshot)
-        self._vrep_get_ping_time()
+        self.wait_for_ping()
 
         duration = millis / 1000.0
         # startTime = time.time()
@@ -126,25 +154,25 @@ class SimulationRobobo(Robobo):
         #     time.sleep(0.005)
         # print("sleeping for {}".format(duration))
         time.sleep(duration)
-
+        
         # Stop to move the wheels motor. Angular velocity.
         stopRightVelocity = stopLeftVelocity = 0
         self._vrep_set_joint_target_velocity(self._LeftMotor, stopLeftVelocity,
                                                   vrep.simx_opmode_oneshot)
         self._vrep_set_joint_target_velocity(self._RightMotor, stopRightVelocity,
                                                   vrep.simx_opmode_oneshot)
-        self._vrep_get_ping_time()
+        self.wait_for_ping()
 
     def talk(self, message):
         print("ROBOT SAYS: {}".format(message))
 
     def set_led(self, selector, color):
         raise NotImplementedError("Not implemeted yet")
-
+    
     def read_irs(self):
         """
         returns sensor readings: [backR, backC, backL, frontRR, frontR, frontC, frontL, frontLL]
-        """
+        """      
         detectionStateIrFrontC, detectedPointIrFrontC, detectedObjectHandleIrFrontC, \
         detectedSurfaceNormalVectorIrFrontC = self._vrep_read_proximity_sensor(
             self._IrFrontC, vrep.simx_opmode_buffer)
@@ -201,7 +229,7 @@ class SimulationRobobo(Robobo):
         return self._get_image(self._FrontalCamera)
 
     def _get_image(self, camera):
-        self._vrep_get_ping_time()
+        self.wait_for_ping()
 
         # get image
         resolution, image = self._vrep_get_vision_sensor_image(camera)
@@ -217,45 +245,41 @@ class SimulationRobobo(Robobo):
     def set_phone_pan(self, pan_position, pan_speed):
         """
         Command the robot to move the smartphone holder in the horizontal (pan) axis.
-
         Arguments
-
         pan_position: Angle to position the pan at.
         pan_speed: Movement speed for the pan mechanism.
         """
         # tilt_position = np.pi / 4.0
         self._vrep_set_joint_target_position(self._PanMotor, pan_position)
-        self._vrep_get_ping_time()
+        self.wait_for_ping()
 
     def set_phone_tilt(self, tilt_position, tilt_speed):
         """
         Command the robot to move the smartphone holder in the vertical (tilt) axis.
-
         Arguments
-
         tilt_position: Angle to position the tilt at.
         tilt_speed: Movement speed for the tilt mechanism.
         """
         # tilt_position = np.pi / 4.0
         self._vrep_set_joint_target_position(self._TiltMotor, tilt_position)
-        self._vrep_get_ping_time()
-
+        self.wait_for_ping()
+    
     def pause_simulation(self):
         vrep.unwrap_vrep(
             vrep.simxPauseSimulation(self._clientID, vrep.simx_opmode_blocking)
         )
-
+    
     def play_simulation(self):
         vrep.unwrap_vrep(
             vrep.simxStartSimulation(self._clientID, vrep.simx_opmode_blocking)
         )
-        time.sleep(1)
+        self.wait_for_ping()
 
     def stop_world(self):
         vrep.unwrap_vrep(
             vrep.simxStopSimulation(self._clientID, vrep.simx_opmode_blocking)
         )
-        time.sleep(2)
+        self.wait_for_ping()
 
     def position(self):
         return vrep.unwrap_vrep(
