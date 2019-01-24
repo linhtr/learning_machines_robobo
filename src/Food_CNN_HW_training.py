@@ -1,11 +1,4 @@
 #!/usr/bin/env python2
-from __future__ import print_function
-import robobo
-import cv2
-import sys
-import signal
-import time
-import os
 
 # TensorFlow and tf.keras
 import tensorflow as tf
@@ -27,53 +20,145 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-if __name__ == "__main__":
 
-    # rob = robobo.SimulationRobobo().connect(address='130.37.245.223', port=19997)
-    rob = robobo.HardwareRobobo(camera=True).connect(address="172.20.10.11")
+# Initialize the CNN
+classifier = Sequential()
 
-    time.sleep(0.1)
+# Step 1 - Convolution
+#number of filters (32), shape for each filter (3, 3), input shape (64, 64), type of image(RGB(3) or B/W), activation function
+classifier.add(Conv2D(32, (3, 3), input_shape = (64, 64, 3), activation = "relu"))
 
-    def actionStraightForward():
-        rob.move(20, 20, 400)
-        # rob.move(20, 20, 1000)
-        time.sleep(0.1)
-        print("StraightForward")
+# Step 2 - Pooling
+classifier.add(MaxPooling2D(pool_size = (2, 2)))
 
-    def action45Right():
-        rob.move(10, -5, 400)
-        time.sleep(0.1)
-        print("45Right")
+# Step 3 - Flattening
+classifier.add(Flatten())
 
-    def action90Right():
-        rob.move(10, -10, 400)
-        time.sleep(0.1)
-        print("90Right")
+# Step 4 - Full Connection
+classifier.add(Dense(activation = "relu", units = 128)) #output_dim = 128
+classifier.add(Dense(activation = "softmax", units = 6)) #output_dim = 6
 
-    def action45Left():
-        rob.move(-5, 10, 400)
-        time.sleep(0.1)
-        print("45Left")
+# Compiling the CNN
+classifier.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['accuracy'])
 
-    def action90Left():
-        rob.move(-10, 10, 400)
-        time.sleep(0.1)
-        print("90Left")
+# Fitting the CNN to the images
+train_datagen = ImageDataGenerator(rescale=1./255)
+test_datagen = ImageDataGenerator(rescale=1./255)
 
-    def actionBackwards():
-        rob.move(-10, -10, 200)
-        time.sleep(0.1)
-        print("Backwards")
+training_set = train_datagen.flow_from_directory(
+    './images/HW_dataset/training_set',
+    target_size = (64, 64),
+    batch_size = 32, #Number of observations per batch
+    class_mode = 'categorical'
+)
 
-    images = []
+test_set = test_datagen.flow_from_directory(
+    './images/HW_dataset/test_set',
+    target_size = (64, 64),
+    batch_size = 32, #Number of observations per batch
+    class_mode = 'categorical'
+)
 
-    for i in range(10):
+# Train convolutional neural network
+history = classifier.fit_generator(
+    training_set,
+    steps_per_epoch = 412, #Number of training images
+    epochs = 10, #1 epoch means neural network is trained on every training examples in 1 pass --> training cycle
+    validation_data = test_set,
+    validation_steps = 1 #suggestion: validation_steps = TotalvalidationSamples / ValidationBatchSize
+)
 
-        image = rob.get_image_front()
-        # print(image)
+# Get training and test loss histories
+training_loss = history.history['loss']
+test_loss = history.history['val_loss']
 
-        images.append(image)
-        for i, image in enumerate(images):
-            cv2.imwrite('./src/images/HW_dataset/HW_p1-' + str(i) + ".png", image)
+# Create count of the number of epochs
+epoch_count = range(1, len(training_loss) + 1)
+
+# Visualize loss history
+fig_Loss = plt.figure()
+plt.plot(epoch_count, training_loss, 'r--')
+plt.plot(epoch_count, test_loss, 'b-')
+plt.legend(['Training Loss', 'Test Loss'])
+fig_Loss.suptitle('Loss History', fontsize=18)
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.show();
+fig_Loss.savefig('fig_HW_LossHistory(3).png')
+
+# serialize model to JSON
+# the keras model which is trained is defined as 'model' in this example
+model_json = classifier.to_json()
+with open("CNN_HW_model(3).json", "w") as json_file:
+    json_file.write(model_json)
+# serialize weights to HDF5
+classifier.save_weights("CNN_HW_weights(3).h5")
+print("Saved model to disk")
 
 
+# Test a random image
+# Go straight
+test_image = image.load_img('./images/predict/HW_p1-3.png', target_size = (64, 64))
+test_image = image.img_to_array(test_image)
+test_image = np.expand_dims(test_image, axis = 0) # Add fourth dimension
+# Go 45 left
+test_image2 = image.load_img('./images/predict/HW_p1-10.png', target_size = (64, 64))
+test_image2 = image.img_to_array(test_image2)
+test_image2 = np.expand_dims(test_image2, axis = 0)
+# Go 45 right
+test_image3 = image.load_img('./images/predict/HW_p5-55.png', target_size = (64, 64))
+test_image3 = image.img_to_array(test_image3)
+test_image3 = np.expand_dims(test_image3, axis = 0)
+
+result = classifier.predict(test_image)
+result2 = classifier.predict(test_image2)
+result3 = classifier.predict(test_image3)
+
+print(result)
+print(result2)
+print(result3)
+
+training_set.class_indices
+
+if result[0][0] == 1:
+    prediction = 'straight'
+elif result[0][1] == 1 :
+    prediction = '45right'
+elif result[0][2] == 1:
+    prediction = '90right'
+elif result[0][3] == 1:
+    prediction = '45left'
+elif result[0][4] == 1:
+    prediction = '90left'
+elif result[0][5] == 1:
+    prediction = 'back'
+
+if result2[0][0] == 1:
+    prediction2 = 'straight'
+elif result2[0][1] == 1 :
+    prediction2 = '45right'
+elif result2[0][2] == 1:
+    prediction2 = '90right'
+elif result2[0][3] == 1:
+    prediction2 = '45left'
+elif result2[0][4] == 1:
+    prediction2 = '90left'
+elif result2[0][5] == 1:
+    prediction2 = 'back'
+
+if result3[0][0] == 1:
+    prediction3 = 'straight'
+elif result3[0][1] == 1 :
+    prediction3 = '45right'
+elif result3[0][2] == 1:
+    prediction3 = '90right'
+elif result3[0][3] == 1:
+    prediction3 = '45left'
+elif result3[0][4] == 1:
+    prediction3 = '90left'
+elif result3[0][5] == 1:
+    prediction3 = 'back'
+
+print(prediction)
+print(prediction2)
+print(prediction3)
