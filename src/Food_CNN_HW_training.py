@@ -59,6 +59,11 @@ test_set = test_datagen.flow_from_directory(
     class_mode = 'categorical'
 )
 
+# Checkpoint
+filepath = "week3/models/CNN_HW_weights(11){epoch:02d}-{val_loss:.2f}.hdf5"
+checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=0, save_best_only=False, save_weights_only=False, mode='auto', period=1)
+callbacks_list = [checkpoint]
+
 # Train convolutional neural network
 history = classifier.fit_generator(
     training_set,
@@ -84,29 +89,40 @@ fig_Loss.suptitle('Loss History', fontsize=18)
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.show();
-fig_Loss.savefig('fig_HW_LossHistory(5).png')
+fig_Loss.savefig('week3/figures/fig_HW_LossHistory(11).png')
+
+# Visualize accuracy history
+fig_Acc = plt.figure()
+plt.plot(epoch_count, training_acc, 'r--')
+plt.plot(epoch_count, test_acc, 'b-')
+plt.legend(['Training Accuracy', 'Test Accuracy'])
+fig_Acc.suptitle('Accuracy History', fontsize=18)
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.show();
+fig_Acc.savefig('week3/figures/fig_HW_AccHistory(11).png')
 
 # serialize model to JSON
 # the keras model which is trained is defined as 'model' in this example
 model_json = classifier.to_json()
-with open("CNN_HW_model(5).json", "w") as json_file:
+with open("week3/models/CNN_HW_model(11).json", "w") as json_file:
     json_file.write(model_json)
 # serialize weights to HDF5
-classifier.save_weights("CNN_HW_weights(5).h5")
+classifier.save_weights("week3/models/CNN_HW_weights(11).h5")
 print("Saved model to disk")
 
 
 # Test a random image
 # Go straight
-test_image = image.load_img('./images/predict/HW_p1-3.png', target_size = (64, 64))
+test_image = image.load_img('week3/images/predict/HW_p1-3.png', target_size = (64, 64))
 test_image = image.img_to_array(test_image)
 test_image = np.expand_dims(test_image, axis = 0) # Add fourth dimension
 # Go 45 left
-test_image2 = image.load_img('./images/predict/HW_p1-10.png', target_size = (64, 64))
+test_image2 = image.load_img('week3/images/predict/HW_p1-10.png', target_size = (64, 64))
 test_image2 = image.img_to_array(test_image2)
 test_image2 = np.expand_dims(test_image2, axis = 0)
 # Go 45 right
-test_image3 = image.load_img('./images/predict/HW_p5-55.png', target_size = (64, 64))
+test_image3 = image.load_img('week3/images/predict/HW_p5-55.png', target_size = (64, 64))
 test_image3 = image.img_to_array(test_image3)
 test_image3 = np.expand_dims(test_image3, axis = 0)
 

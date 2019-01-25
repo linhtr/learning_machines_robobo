@@ -27,44 +27,6 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-# # Initialize the CNN
-# classifier = Sequential()
-#
-# # Step 1 - Convolution
-# #number of filters (32), shape for each filter (3, 3), input shape (64, 64), type of image(RGB(3) or B/W), activation function
-# classifier.add(Conv2D(32, (3, 3), input_shape = (64, 64, 3), activation = "relu"))
-#
-# # Step 2 - Pooling
-# classifier.add(MaxPooling2D(pool_size = (2, 2)))
-#
-# # Step 3 - Flattening
-# classifier.add(Flatten())
-#
-# # Step 4 - Full Connection
-# classifier.add(Dense(activation = "relu", units = 128)) #output_dim = 128
-# classifier.add(Dense(activation = "softmax", units = 6)) #output_dim = 6
-#
-# # Compiling the CNN
-# classifier.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['accuracy'])
-#
-# # Fitting the CNN to the images
-# train_datagen = ImageDataGenerator(rescale=1./255)
-# test_datagen = ImageDataGenerator(rescale=1./255)
-#
-# training_set = train_datagen.flow_from_directory(
-#     './src/images/dataset/training_set',
-#     target_size = (64, 64),
-#     batch_size = 32, #Number of observations per batch
-#     class_mode = 'categorical'
-# )
-#
-# test_set = test_datagen.flow_from_directory(
-#     './src/images/dataset/test_set',
-#     target_size = (64, 64),
-#     batch_size = 32, #Number of observations per batch
-#     class_mode = 'categorical'
-# )
-
 
 if __name__ == "__main__":
 
@@ -78,9 +40,19 @@ if __name__ == "__main__":
     # print("Loaded model from disk")
     # loaded_model.save('model_num.hdf5')
     # loaded_model = load_model('model_num.hdf5')
-    load_model = load_model('./src/CNN_Sim_weights(6)03-0.33.hdf5')
 
-    rob = robobo.SimulationRobobo().connect(address='130.37.245.223', port=19997)
+    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)01-0.56.hdf5')
+    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)02-0.48.hdf5')
+    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)03-0.47.hdf5')
+    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)04-0.80.hdf5')
+    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)05-0.55.hdf5')
+    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)06-0.76.hdf5')
+    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)07-0.85.hdf5')
+    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)08-1.22.hdf5')
+    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)09-0.98.hdf5')
+    loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)10-1.28.hdf5')
+
+    rob = robobo.SimulationRobobo().connect(address='192.168.1.101', port=19997)
 
     rob.play_simulation()
 
@@ -104,7 +76,7 @@ if __name__ == "__main__":
         print("StraightForward")
 
     def action45Right():
-        rob.move(10, -5, 400)
+        rob.move(5, -5, 400)
         time.sleep(0.1)
         print("45Right")
 
@@ -114,7 +86,7 @@ if __name__ == "__main__":
         print("90Right")
 
     def action45Left():
-        rob.move(-5, 10, 400)
+        rob.move(-5, 5, 400)
         time.sleep(0.1)
         print("45Left")
 
@@ -130,23 +102,20 @@ if __name__ == "__main__":
 
     # images = []
 
-    for i in range(200):
+    for i in range(100):
 
         predict_image = rob.get_image_front()
         # print(predict_image)
 
+        # Use this to save images for database
         # images.append(predict_image)
         # for i, predict_image in enumerate(images):
-        #     cv2.imwrite('./src/images/run/img-' + str(i) + ".png", image)
+        #     cv2.imwrite('./src/week3/images/run/img-' + str(i) + ".png", predict_image)
 
-        cv2.imwrite('./src/images/run/img-0.png', predict_image)
-        predict_image = cv2.imread('./src/images/run/img-0.png')
+        # temporarily save image to computer and load image
+        cv2.imwrite('./src/week3/images/run/img-0.png', predict_image)
+        predict_image = cv2.imread('./src/week3/images/run/img-0.png')
         # print(predict_image)
-
-        # image = rob.get_image_front().reshape([-1, 64, 64, 3])
-        # print(image)
-        # image = image.load_img(image, target_size=(64, 64))
-
         predict_image = cv2.resize(predict_image, (64, 64))
         predict_image = predict_image[..., ::-1].astype(np.float32) / 255.0
         predict_image = image.img_to_array(predict_image)
@@ -155,7 +124,6 @@ if __name__ == "__main__":
         output = loaded_model.predict_classes(predict_image)
         print("Predicted output:" + str(output))
 
-        # training_set.class_indices
         if output[0] == 0:
             prediction = 'straight'
             actionStraightForward()
@@ -175,8 +143,9 @@ if __name__ == "__main__":
             prediction = 'back'
             actionBackwards()
 
+        # Remove temporarily image from computer
         try:
-            os.remove('./src/images/run/img-0.png')
+            os.remove('./src/week3/images/run/img-0.png')
         except:
             pass
 
