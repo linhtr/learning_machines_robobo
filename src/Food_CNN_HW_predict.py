@@ -38,8 +38,8 @@ if __name__ == "__main__":
     # load weights into new model
     loaded_model.load_weights("./src/week3/models/CNN_HW_weights.h5")
     print("Loaded model from disk")
-    loaded_model.save('week3/models/model_HW_num.hdf5')
-    loaded_model = load_model('week3/models/model_HW_num.hdf5')
+    loaded_model.save('./src/week3/models/model_HW_num.hdf5')
+    loaded_model = load_model('./src/week3/models/model_HW_num.hdf5')
 
     rob = robobo.HardwareRobobo(camera=True).connect(address="192.168.1.8")
 

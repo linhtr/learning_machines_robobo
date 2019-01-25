@@ -14,7 +14,7 @@ class SimulationRobobo(Robobo):
         self._value_number = number
     
     def connect(self, address='127.0.0.1', port=19999):
-        vrep.simxFinish(-1)  # just in case, close all opened connections
+        # vrep.simxFinish(-1)  # just in case, close all opened connections
         self._clientID = vrep.simxStart(address, port, True, True, 5000, 5)  # Connect to V-REP
         if self._clientID >= 0: #  and clientID_0 != -1:
             self.wait_for_ping()
@@ -202,21 +202,21 @@ class SimulationRobobo(Robobo):
             self._IrFrontL, vrep.simx_opmode_buffer)
 
         vect = [np.sqrt(detectedPointIrBackR[0]   ** 2 + detectedPointIrBackR[1]   ** 2 + detectedPointIrBackR[2]   ** 2)
-                if detectionStateIrBackR   else 0,
+                if detectionStateIrBackR   else False,
                 np.sqrt(detectedPointIrIrBackC[0] ** 2 + detectedPointIrIrBackC[1] ** 2 + detectedPointIrIrBackC[2] ** 2)
-                if detectionStateIrBackC   else 0,
+                if detectionStateIrBackC   else False,
                 np.sqrt(detectedPointIrBackL[0] ** 2   + detectedPointIrBackL[1]   ** 2 + detectedPointIrBackL[2]   ** 2)
-                if detectionStateIrBackL   else 0,
+                if detectionStateIrBackL   else False,
                 np.sqrt(detectedPointIrFrontRR[0] ** 2 + detectedPointIrFrontRR[1] ** 2 + detectedPointIrFrontRR[2] ** 2)
-                if detectionStateIrFrontRR else 0,
+                if detectionStateIrFrontRR else False,
                 np.sqrt(detectedPointIrFrontR[0] ** 2  + detectedPointIrFrontR[1]  ** 2 + detectedPointIrFrontR[2]  ** 2)
-                if detectionStateIrFrontR  else 0,
+                if detectionStateIrFrontR  else False,
                 np.sqrt(detectedPointIrFrontC[0] ** 2  + detectedPointIrFrontC[1]  ** 2 + detectedPointIrFrontC[2]  ** 2)
-                if detectionStateIrFrontC   else 0,
+                if detectionStateIrFrontC   else False,
                 np.sqrt(detectedPointIrFrontL[0] ** 2  + detectedPointIrFrontL[1]  ** 2 + detectedPointIrFrontL[2]  ** 2)
-                if detectionStateIrFrontL  else 0,
+                if detectionStateIrFrontL  else False,
                 np.sqrt(detectedPointIrFrontLL[0] ** 2 + detectedPointIrFrontLL[1] ** 2 + detectedPointIrFrontLL[2] ** 2)
-                if detectionStateIrFrontLL else 0]
+                if detectionStateIrFrontLL else False]
 
         # old_min = 0
         # old_max = 0.20
@@ -245,7 +245,9 @@ class SimulationRobobo(Robobo):
     def set_phone_pan(self, pan_position, pan_speed):
         """
         Command the robot to move the smartphone holder in the horizontal (pan) axis.
+
         Arguments
+
         pan_position: Angle to position the pan at.
         pan_speed: Movement speed for the pan mechanism.
         """
@@ -256,7 +258,9 @@ class SimulationRobobo(Robobo):
     def set_phone_tilt(self, tilt_position, tilt_speed):
         """
         Command the robot to move the smartphone holder in the vertical (tilt) axis.
+
         Arguments
+
         tilt_position: Angle to position the tilt at.
         tilt_speed: Movement speed for the tilt mechanism.
         """

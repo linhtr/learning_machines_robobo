@@ -31,15 +31,15 @@ import matplotlib.pyplot as plt
 if __name__ == "__main__":
 
     # load json and create model
-    # json_file = open('./src/CNN_model(6).json', 'r')
+    # json_file = open('./src/week3/models/CNN_model(6).json', 'r')
     # loaded_model_json = json_file.read()
     # json_file.close()
     # loaded_model = model_from_json(loaded_model_json)
     # load weights into new model
-    # loaded_model.load_weights("./src/CNN_weights(3).h5")
+    # loaded_model.load_weights("./src/week3/modelsCNN_weights(3).h5")
     # print("Loaded model from disk")
-    # loaded_model.save('model_num.hdf5')
-    # loaded_model = load_model('model_num.hdf5')
+    # loaded_model.save('./src/week3/models/model_num.hdf5')
+    # loaded_model = load_model('./src/week3/models/model_num.hdf5')
 
     # Checkpoint models
     # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)01-0.56.hdf5')
