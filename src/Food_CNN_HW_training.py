@@ -46,14 +46,14 @@ train_datagen = ImageDataGenerator(rescale=1./255)
 test_datagen = ImageDataGenerator(rescale=1./255)
 
 training_set = train_datagen.flow_from_directory(
-    './images/HW_dataset/training_set',
+    'week3/images/HW_dataset/training_set',
     target_size = (64, 64),
     batch_size = 412, #Number of observations per batch
     class_mode = 'categorical'
 )
 
 test_set = test_datagen.flow_from_directory(
-    './images/HW_dataset/test_set',
+    'week3/images/HW_dataset/test_set',
     target_size = (64, 64),
     batch_size = 103, #Number of observations per batch
     class_mode = 'categorical'
@@ -110,7 +110,6 @@ with open("week3/models/CNN_HW_model(11).json", "w") as json_file:
 # serialize weights to HDF5
 classifier.save_weights("week3/models/CNN_HW_weights(11).h5")
 print("Saved model to disk")
-
 
 # Test a random image
 # Go straight

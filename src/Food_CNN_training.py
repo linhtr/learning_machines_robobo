@@ -47,21 +47,21 @@ train_datagen = ImageDataGenerator(rescale=1./255)
 test_datagen = ImageDataGenerator(rescale=1./255)
 
 training_set = train_datagen.flow_from_directory(
-    './images/dataset/training_set',
+    'week3/images/dataset/training_set',
     target_size = (64, 64),
     batch_size = 32, #Number of observations per batch
     class_mode = 'categorical'
 )
 
 test_set = test_datagen.flow_from_directory(
-    './images/dataset/test_set',
+    'week3/images/dataset/test_set',
     target_size = (64, 64),
     batch_size = 32, #Number of observations per batch
     class_mode = 'categorical'
 )
 
 # Checkpoint
-filepath = "week3/models/CNN_Sim_weights(10){epoch:02d}-{val_loss:.2f}.hdf5"
+filepath = "week3/models/CNN_Sim_weights(11){epoch:02d}-{val_loss:.2f}.hdf5"
 checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=0, save_best_only=False, save_weights_only=False, mode='auto', period=1)
 callbacks_list = [checkpoint]
 
@@ -95,7 +95,7 @@ fig_Loss.suptitle('Loss History', fontsize=18)
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.show();
-fig_Loss.savefig('week3/figures/fig_Sim_LossHistory(10).png')
+fig_Loss.savefig('week3/figures/fig_Sim_LossHistory(11).png')
 
 # Visualize accuracy history
 fig_Acc = plt.figure()
@@ -106,18 +106,16 @@ fig_Acc.suptitle('Accuracy History', fontsize=18)
 plt.xlabel('Epoch')
 plt.ylabel('Accuracy')
 plt.show();
-fig_Acc.savefig('week3/figures/fig_Sim_AccHistory(10).png')
-
+fig_Acc.savefig('week3/figures/fig_Sim_AccHistory(11).png')
 
 # serialize model to JSON
 # the keras model which is trained is defined as 'model' in this example
 model_json = classifier.to_json()
-with open("week3/models/CNN_model(10).json", "w") as json_file:
+with open("week3/models/CNN_model(11).json", "w") as json_file:
     json_file.write(model_json)
 # serialize weights to HDF5
-classifier.save_weights("week3/models/CNN_weights(10).h5")
+classifier.save_weights("week3/models/CNN_weights(11).h5")
 print("Saved model to disk")
-
 
 # Test a random image
 # Go 45 right

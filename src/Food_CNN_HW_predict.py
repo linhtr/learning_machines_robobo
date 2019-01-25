@@ -98,6 +98,7 @@ if __name__ == "__main__":
         predict_image = image.img_to_array(predict_image)
         predict_image = np.expand_dims(predict_image, axis=0) # Add fourth dimension
 
+        # predicted output
         output = loaded_model.predict_classes(predict_image)
         print("Predicted output:" + str(output))
 

@@ -41,6 +41,7 @@ if __name__ == "__main__":
     # loaded_model.save('model_num.hdf5')
     # loaded_model = load_model('model_num.hdf5')
 
+    # Checkpoint models
     # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)01-0.56.hdf5')
     # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)02-0.48.hdf5')
     # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)03-0.47.hdf5')
@@ -121,6 +122,7 @@ if __name__ == "__main__":
         predict_image = image.img_to_array(predict_image)
         predict_image = np.expand_dims(predict_image, axis=0)  # Add fourth dimension
 
+        # predicted output
         output = loaded_model.predict_classes(predict_image)
         print("Predicted output:" + str(output))
 
