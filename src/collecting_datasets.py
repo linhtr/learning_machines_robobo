@@ -5,21 +5,24 @@ import cv2
 import sys
 import signal
 import time
+import prey
 import numpy as np
-
-# TensorFlow and tf.keras
-import tensorflow as tf
-from tensorflow import keras
-
-print(tf.__version__)
 
 
 if __name__ == "__main__":
 
-    rob = robobo.SimulationRobobo().connect(address='130.37.245.223', port=19997)
+    # connect to Robobo
+    rob = robobo.SimulationRobobo().connect(address='192.168.1.101', port=19997)
     # rob = robobo.HardwareRobobo(camera=True).connect(address="192.168.1.16")
 
     rob.play_simulation()
+
+    # connect to prey robot
+    prey_robot = robobo.SimulationRoboboPrey().connect(address='192.168.1.101', port=19989)
+    # initialise class prey
+    prey_controller = prey.Prey(robot=prey_robot)
+    # start the thread prey, makes the prey move
+    prey_controller.start()
 
     # rob.set_phone_pan(343, 100)
     # rob.set_phone_tilt(109, 100)
@@ -30,13 +33,6 @@ if __name__ == "__main__":
     # rob.set_phone_tilt(26, 100)
 
     time.sleep(0.1)
-
-    # x = np.array((rob.read_irs()), dtype=float)
-    # print("input x:" + str(x))
-    # print("Begin IRS:" + str(rob.read_irs()))
-    #
-    # if np.amax(x, axis=0) != 0:
-    #     x = x / np.amax(x, axis=0)
 
     class Neural_Network(object):
         def __init__(self):
@@ -107,22 +103,15 @@ if __name__ == "__main__":
         rob.move(-10, -10, 200)
         print("Backwards")
 
-    # def CameraView():
-    #     rob.get_image_front()
-    #     #print("Image")
-
-    # def CameraView2(self):
-    #     rob._get_image(self._FrontalCamera)
 
     images = []
 
-    for i in range(200):
+    for i in range(100):
 
         image = rob.get_image_front()
         images.append(image)
         for i, image in enumerate(images):
-            cv2.imwrite('./src/images/img_p2-' + str(i) + ".png", image)
-
+            cv2.imwrite('./src/week4/images/dataset/img_p5-' + str(i) + ".png", image)
 
         # Scaling IR signal
         x = np.array((rob.read_irs()), dtype=float)
@@ -138,34 +127,38 @@ if __name__ == "__main__":
 
         if 0 <= o < 0.1667:
             actionStraightForward()
-            time.sleep(0.1)
+            # time.sleep(0.1)
 
         elif 0.1667 <= o < 0.3334:
             action45Right()
-            time.sleep(0.1)
+            # time.sleep(0.1)
 
         elif 0.3334 <= o < 0.5:
             action90Right()
-            time.sleep(0.1)
+            # time.sleep(0.1)
 
         elif 0.5 <= o < 0.6668:
             action45Left()
-            time.sleep(0.1)
+            # time.sleep(0.1)
 
         elif 0.6668 <= o <= 0.8335:
             action90Left()
-            time.sleep(0.1)
+            # time.sleep(0.1)
 
         elif 0.8335 <= o <= 1:
             actionBackwards()
-            time.sleep(0.1)
+            # time.sleep(0.1)
 
         print("Current IRS: \n" + str(rob.read_irs()))
         print("Predicted Output: \n" + str(o))
 
     # pause the simulation and read the collected food
-    rob.pause_simulation()
-    print("Robobo collected {} food".format(rob.collected_food()))
+    # rob.pause_simulation()
+    # print("Robobo collected {} food".format(rob.collected_food()))
+
+    # stop the prey
+    prey_controller.stop()
+    prey_controller.join()
 
     # Stopping the simulation resets the environment
     rob.stop_world()

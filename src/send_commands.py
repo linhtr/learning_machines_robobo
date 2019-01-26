@@ -15,7 +15,7 @@ def main():
     signal.signal(signal.SIGINT, terminate_program)
 
     # rob = robobo.HardwareRobobo(camera=True).connect(address="192.168.1.5")
-    rob = robobo.SimulationRobobo().connect(address='192.168.1.71', port=19997)
+    rob = robobo.SimulationRobobo().connect(address='192.168.1.101', port=19997)
 
     rob.play_simulation()
 
@@ -23,7 +23,7 @@ def main():
     # if the order is not respected, an error is raised and I do not why
     # if you use the provided scene, do not change the port number
     # if you want to build your own scene, remember to modify the prey port number on vrep
-    prey_robot = robobo.SimulationRoboboPrey().connect(address='192.168.1.71', port=19989)
+    prey_robot = robobo.SimulationRoboboPrey().connect(address='192.168.1.101', port=19989)
 
 
     # rob.pause_simulation()

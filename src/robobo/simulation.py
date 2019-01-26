@@ -202,21 +202,21 @@ class SimulationRobobo(Robobo):
             self._IrFrontL, vrep.simx_opmode_buffer)
 
         vect = [np.sqrt(detectedPointIrBackR[0]   ** 2 + detectedPointIrBackR[1]   ** 2 + detectedPointIrBackR[2]   ** 2)
-                if detectionStateIrBackR   else False,
+                if detectionStateIrBackR   else 0,
                 np.sqrt(detectedPointIrIrBackC[0] ** 2 + detectedPointIrIrBackC[1] ** 2 + detectedPointIrIrBackC[2] ** 2)
-                if detectionStateIrBackC   else False,
+                if detectionStateIrBackC   else 0,
                 np.sqrt(detectedPointIrBackL[0] ** 2   + detectedPointIrBackL[1]   ** 2 + detectedPointIrBackL[2]   ** 2)
-                if detectionStateIrBackL   else False,
+                if detectionStateIrBackL   else 0,
                 np.sqrt(detectedPointIrFrontRR[0] ** 2 + detectedPointIrFrontRR[1] ** 2 + detectedPointIrFrontRR[2] ** 2)
-                if detectionStateIrFrontRR else False,
+                if detectionStateIrFrontRR else 0,
                 np.sqrt(detectedPointIrFrontR[0] ** 2  + detectedPointIrFrontR[1]  ** 2 + detectedPointIrFrontR[2]  ** 2)
-                if detectionStateIrFrontR  else False,
+                if detectionStateIrFrontR  else 0,
                 np.sqrt(detectedPointIrFrontC[0] ** 2  + detectedPointIrFrontC[1]  ** 2 + detectedPointIrFrontC[2]  ** 2)
-                if detectionStateIrFrontC   else False,
+                if detectionStateIrFrontC   else 0,
                 np.sqrt(detectedPointIrFrontL[0] ** 2  + detectedPointIrFrontL[1]  ** 2 + detectedPointIrFrontL[2]  ** 2)
-                if detectionStateIrFrontL  else False,
+                if detectionStateIrFrontL  else 0,
                 np.sqrt(detectedPointIrFrontLL[0] ** 2 + detectedPointIrFrontLL[1] ** 2 + detectedPointIrFrontLL[2] ** 2)
-                if detectionStateIrFrontLL else False]
+                if detectionStateIrFrontLL else 0]
 
         # old_min = 0
         # old_max = 0.20
