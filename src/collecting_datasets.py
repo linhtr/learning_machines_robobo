@@ -12,13 +12,13 @@ import numpy as np
 if __name__ == "__main__":
 
     # connect to Robobo
-    rob = robobo.SimulationRobobo().connect(address='192.168.1.101', port=19997)
+    rob = robobo.SimulationRobobo().connect(address='10.107.1.100', port=19997)
     # rob = robobo.HardwareRobobo(camera=True).connect(address="192.168.1.16")
 
     rob.play_simulation()
 
     # connect to prey robot
-    prey_robot = robobo.SimulationRoboboPrey().connect(address='192.168.1.101', port=19989)
+    prey_robot = robobo.SimulationRoboboPrey().connect(address='10.107.1.100', port=19989)
     # initialise class prey
     prey_controller = prey.Prey(robot=prey_robot)
     # start the thread prey, makes the prey move
@@ -111,7 +111,7 @@ if __name__ == "__main__":
         image = rob.get_image_front()
         images.append(image)
         for i, image in enumerate(images):
-            cv2.imwrite('./src/week4/images/dataset/img_p5-' + str(i) + ".png", image)
+            cv2.imwrite('./src/week4/images/dataset/img_p10-' + str(i) + ".png", image)
 
         # Scaling IR signal
         x = np.array((rob.read_irs()), dtype=float)
