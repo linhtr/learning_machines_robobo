@@ -111,7 +111,7 @@ if __name__ == "__main__":
         image = rob.get_image_front()
         images.append(image)
         for i, image in enumerate(images):
-            cv2.imwrite('./src/week4/images/dataset/img_p10-' + str(i) + ".png", image)
+            cv2.imwrite('./src/week4/images/dataset/img_p11-' + str(i) + ".png", image)
 
         # Scaling IR signal
         x = np.array((rob.read_irs()), dtype=float)
