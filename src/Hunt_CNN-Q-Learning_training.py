@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 # TensorFlow and tf.keras
 import tensorflow as tf
+import robobo
 from tensorflow import keras
 from keras.models import Sequential, model_from_json, load_model
 from keras.layers.convolutional import Conv2D
@@ -11,7 +12,8 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import ModelCheckpoint
 import random
 import time
-from scikit import transform
+from skimage import transform
+from skimage.color import rgb2gray
 from collections import deque
 from IPython.display import display
 from PIL import Image
@@ -24,15 +26,75 @@ import warnings
 warnings.filterwarnings('ignore')
 from OpenCV import cv2
 
-# Preprocessing frames (nog omschakelen naar zwart wit)
+def create_environment():
+    rob = robobo.SimulationRobobo().connect(address='10.107.1.100', port=19997)
+    prey_robot = robobo.SimulationRoboboPrey().connect(address='10.107.1.100', port=19989)
 
-def preprocess_frame(image):
-    # Greyscale frame already done in our vizdoom config
-    # x = np.mean(frame,-1)
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    # if __name__ == "__main__":
+
+    rob.play_simulation()
+    rob.set_phone_tilt(32, 100)
+        # connect to prey robot
+
+        # initialise class prey
+    prey_controller = prey.Prey(robot=prey_robot)
+        # start the thread prey, makes the prey move
+    prey_controller.start()
+
+
+    straight = [1, 0, 0, 0, 0, 0, 0, 0]
+    right20 = [0, 1, 0, 0, 0, 0, 0, 0]
+    right45 = [0, 0, 1, 0, 0, 0, 0, 0]
+    right90 = [0, 0, 0, 1, 0, 0, 0, 0]
+    left20 = [0, 0, 0, 0, 1, 0, 0, 0]
+    left45 = [0, 0, 0, 0, 0, 1, 0, 0]
+    left90 = [0, 0, 0, 0, 0, 0, 1, 0]
+    back = [0, 0, 0, 0, 0, 0, 0, 1]
+
+    possible_actions = [straight, right20, right45, right90, left20, left45, left90, back]
+
+    return rob, possible_actions
+
+def test_environment():
+    rob = robobo.SimulationRobobo().connect(address='10.107.1.100', port=19997)
+    prey_robot = robobo.SimulationRoboboPrey().connect(address='10.107.1.100', port=19989)
+    rob.play_simulation()
+    rob.set_phone_tilt(32, 100)
+    prey_controller = prey.Prey(robot=prey_robot)
+    prey_controller.start()
+
+    straight = [1, 0, 0, 0, 0, 0, 0, 0]
+    right20 = [0, 1, 0, 0, 0, 0, 0, 0]
+    right45 = [0, 0, 1, 0, 0, 0, 0, 0]
+    right90 = [0, 0, 0, 1, 0, 0, 0, 0]
+    left20 = [0, 0, 0, 0, 1, 0, 0, 0]
+    left45 = [0, 0, 0, 0, 0, 1, 0, 0]
+    left90 = [0, 0, 0, 0, 0, 0, 1, 0]
+    back = [0, 0, 0, 0, 0, 0, 0, 1]
+    actions = [straight, right20, right45, right90, left20, left45, left90, back]
+
+    episodes = 10
+    for i in range(episodes):
+        rob.new_episode()
+        while not rob.is_episode_finished():
+            state = rob.get_front_image()
+            img = state.screen_buffer
+            #misc = state.game_variables
+            action = random.choice(actions)
+            print(action)
+            reward = rob.move(action)
+            print ("\treward:", reward)
+            time.sleep(0.02)
+        print ("Result:", rob.get_total_reward())
+        time.sleep(2)
+    rob.stop_world()
+
+
+def preprocess_frame(frame):
+    gray = rgb2gray(frame)
 
     # Crop the screen (remove the roof because it contains no information)
-    cropped_frame = image[30:-10, 30:-30]
+    cropped_frame = gray[30:-10, 30:-30]
 
     # Normalize Pixel Values
     normalized_frame = cropped_frame / 255.0
@@ -51,24 +113,25 @@ stacked_frames = deque([np.zeros((84, 84), dtype=np.int) for i in range(stack_si
 
 def stack_frames(stacked_frames, state, is_new_episode):
     # Preprocess frame
-    image = preprocess_frame(state)
+    frame = rob.get_image_front()
+    frame = preprocess_frame(state)
 
     if is_new_episode:
         # Clear our stacked_frames
         stacked_frames = deque([np.zeros((84, 84), dtype=np.int) for i in range(stack_size)], maxlen=4)
 
         # Because we're in a new episode, copy the same frame 4x
-        stacked_frames.append(image)
-        stacked_frames.append(image)
-        stacked_frames.append(image)
-        stacked_frames.append(image)
+        stacked_frames.append(frame)
+        stacked_frames.append(frame)
+        stacked_frames.append(frame)
+        stacked_frames.append(frame)
 
         # Stack the frames
         stacked_state = np.stack(stacked_frames, axis=2)
 
     else:
         # Append frame to deque, automatically removes the oldest frame
-        stacked_frames.append(image)
+        stacked_frames.append(frame)
 
         # Build the stacked state (first dimension specifies different frames)
         stacked_state = np.stack(stacked_frames, axis=2)
@@ -78,7 +141,7 @@ def stack_frames(stacked_frames, state, is_new_episode):
 
 ### MODEL HYPERPARAMETERS
 state_size = [84,84,4]      # Our input is a stack of 4 frames hence 84x84x4 (Width, height, channels)
-action_size = game.get_available_buttons_size()              # 3 possible actions: left, right, shoot
+action_size = 8              # 3 possible actions: left, right, shoot
 learning_rate =  0.0002      # Alpha (aka learning rate)
 
 ### TRAINING HYPERPARAMETERS
@@ -238,25 +301,25 @@ class Memory():
 memory = Memory(max_size=memory_size)
 
 # Render the environment
-game.new_episode()
+rob.new_episode()
 
 for i in range(pretrain_length):
     # If it's the first step
     if i == 0:
         # First we need a state
-        state = game.get_state().screen_buffer
+        state = rob.get_image_front().screen_buffer
         state, stacked_frames = stack_frames(stacked_frames, state, True)
 
     # Random action
     action = random.choice(possible_actions)
 
     # Get the rewards
-    reward = game.make_action(action)
+    reward = rob.move(action)
 
     # Look if the episode is finished
-    done = game.is_episode_finished()
+    done = rob.is_episode_finished()
 
-    # If we're dead
+    # # If we're dead
     if done:
         # We finished the episode
         next_state = np.zeros(state.shape)
@@ -265,21 +328,21 @@ for i in range(pretrain_length):
         memory.add((state, action, reward, next_state, done))
 
         # Start a new episode
-        game.new_episode()
+        rob.new_episode()
 
         # First we need a state
-        state = game.get_state().screen_buffer
+        state = rob.get_image_front().screen_buffer
 
         # Stack the frames
         state, stacked_frames = stack_frames(stacked_frames, state, True)
 
     else:
         # Get the next state
-        next_state = game.get_state().screen_buffer
+        next_state = rob.get_image().screen_buffer
         next_state, stacked_frames = stack_frames(stacked_frames, next_state, False)
 
         # Add experience to memory
-        memory.add((state, action, reward, next_state, done))
+        memory.add((state, action, reward, next_state))
 
         # Our state is now the next_state
         state = next_state
@@ -335,7 +398,7 @@ if training == True:
         decay_step = 0
 
         # Init the game
-        game.init()
+        rob.play_simulation()
 
         for episode in range(total_episodes):
             # Set step to 0
@@ -345,8 +408,8 @@ if training == True:
             episode_rewards = []
 
             # Make a new episode and observe the first state
-            game.new_episode()
-            state = game.get_state().screen_buffer
+            rob.new_episode()
+            state = rob.get_image_front().screen_buffer
 
             # Remember that stack frame function also call our preprocess function.
             state, stacked_frames = stack_frames(stacked_frames, state, True)
@@ -362,10 +425,10 @@ if training == True:
                                                              possible_actions)
 
                 # Do the action
-                reward = game.make_action(action)
+                reward = rob.move(action)
 
                 # Look if the episode is finished
-                done = game.is_episode_finished()
+                done = rob.is_episode_finished()
 
                 # Add the reward to total reward
                 episode_rewards.append(reward)
@@ -391,7 +454,7 @@ if training == True:
 
                 else:
                     # Get the next state
-                    next_state = game.get_state().screen_buffer
+                    next_state = rob.get_image_front().screen_buffer
 
                     # Stack the frame of the next_state
                     next_state, stacked_frames = stack_frames(stacked_frames, next_state, False)
@@ -444,33 +507,33 @@ if training == True:
 
             # Save model every 5 episodes
             if episode % 5 == 0:
-                save_path = saver.save(sess, "./models/model.ckpt")
+                save_path = saver.save(sess, "./week4/models/model.ckpt")
                 print("Model Saved")
 
 with tf.Session() as sess:
-    game, possible_actions = create_environment()
+    rob, possible_actions = create_environment()
 
     totalScore = 0
 
     # Load the model
-    saver.restore(sess, "./models/model.ckpt")
-    game.init()
+    saver.restore(sess, "./week4/models/model.ckpt")
+    rob.play_simulation()
     for i in range(1):
 
-        game.new_episode()
-        while not game.is_episode_finished():
-            frame = game.get_state().screen_buffer
+        rob.new_episode()
+        while not rob.is_episode_finished():
+            frame = rob.get_image_front().screen_buffer
             state = stack_frames(stacked_frames, frame)
             # Take the biggest Q value (= the best action)
             Qs = sess.run(DQNetwork.output, feed_dict={DQNetwork.inputs_: state.reshape((1, *state.shape))})
             action = np.argmax(Qs)
             action = possible_actions[int(action)]
-            game.make_action(action)
-            score = game.get_total_reward()
+            rob.move(action)
+            score = rob.get_total_reward()
         print("Score: ", score)
         totalScore += score
     print("TOTAL_SCORE", totalScore / 100.0)
-    game.close()
+    rob.stop_world()
 
 
 
