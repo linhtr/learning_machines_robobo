@@ -31,21 +31,23 @@ warnings.filterwarnings('ignore')
 done = True
 
 def connect_VREP():
-    rob = robobo.SimulationRobobo().connect(address='130.37.247.69', port=19997)
-    prey_robot = robobo.SimulationRoboboPrey().connect(address='130.37.247.69', port=19989)
+    rob = robobo.SimulationRobobo().connect(address='192.168.1.101', port=19997)
+    prey_robot = robobo.SimulationRoboboPrey().connect(address='192.168.1.101', port=19989)
 
 def create_environment():
 
     connect_VREP()
 
     rob.play_simulation()
-    rob.set_phone_tilt(32, 100)
+
     # connect to prey robot
     # initialise class prey
     prey_controller = prey.Prey(robot=prey_robot)
     # start the thread prey, makes the prey move
     prey_controller.start()
 
+    rob.set_phone_tilt(32, 100)
+    time.sleep(0.1)
 
     straight = [1, 0, 0, 0, 0, 0, 0, 0]
     right20 = [0, 1, 0, 0, 0, 0, 0, 0]
@@ -81,9 +83,10 @@ def test_environment():
     for i in range(episodes):
         # rob.new_episode()
         rob.play_simulation()
-        rob.set_phone_tilt(32, 100)
         prey_controller = prey.Prey(robot=prey_robot)
         prey_controller.start()
+        rob.set_phone_tilt(32, 100)
+        time.sleep(0.1)
         # while not rob.is_episode_finished():
         state = rob.get_front_image()
         img = state.screen_buffer
@@ -96,6 +99,12 @@ def test_environment():
         time.sleep(0.02)
         print ("Result:", rob.get_total_reward())
         time.sleep(2)
+
+    # stop the prey
+    prey_controller.stop()
+    prey_controller.join()
+    prey_robot.disconnect()
+
     rob.stop_world()
 
 rob, possible_actions = create_environment()
@@ -257,7 +266,7 @@ memory_size = 1000000          # Number of experiences the Memory can keep
 training = True
 
 ## TURN THIS TO TRUE IF YOU WANT TO RENDER THE ENVIRONMENT
-episode_render = False
+episode_render = True
 
 
 class DQNetwork:
@@ -399,12 +408,13 @@ connect_VREP()
 
 rob.play_simulation()
 done = False
-rob.set_phone_tilt(32, 100)
 # connect to prey robot
 # initialise class prey
 prey_controller = prey.Prey(robot=prey_robot)
 # start the thread prey, makes the prey move
 prey_controller.start()
+rob.set_phone_tilt(32, 100)
+time.sleep(0.1)
 
 for i in range(pretrain_length):
     # If it's the first step
@@ -437,22 +447,23 @@ for i in range(pretrain_length):
 
         rob.play_simulation()
         done = False
-        rob.set_phone_tilt(32, 100)
         # connect to prey robot
         # initialise class prey
         prey_controller = prey.Prey(robot=prey_robot)
         # start the thread prey, makes the prey move
         prey_controller.start()
+        rob.set_phone_tilt(32, 100)
+        time.sleep(0.1)
 
         # First we need a state
-        state = rob.get_image_front()
+        state = rob.get_image_front().screen_buffer
 
         # Stack the frames
         state, stacked_frames = stack_frames(stacked_frames, state, True)
 
     else:
         # Get the next state
-        next_state = rob.get_image_front()
+        next_state = rob.get_image_front().screen_buffer
         next_state, stacked_frames = stack_frames(stacked_frames, next_state, False)
 
         # Add experience to memory
@@ -469,9 +480,10 @@ tf.summary.scalar("Loss", DQNetwork.loss)
 
 write_op = tf.summary.merge_all()
 
-
-
-
+"""""
+This function will do the part
+With epsilon select a random action atat, otherwise select at=argmaxaQ(st,a)
+"""""
 def predict_action(explore_start, explore_stop, decay_rate, decay_step, state, actions):
     ## EPSILON GREEDY STRATEGY
     # Choose action a from state s using epsilon greedy.
@@ -525,14 +537,15 @@ if training == True:
             # rob.new_episode()
             rob.play_simulation()
             done = False
-            rob.set_phone_tilt(32, 100)
             # connect to prey robot
             # initialise class prey
             prey_controller = prey.Prey(robot=prey_robot)
             # start the thread prey, makes the prey move
             prey_controller.start()
+            rob.set_phone_tilt(32, 100)
+            time.sleep(0.1)
 
-            state = rob.get_image_front()
+            state = rob.get_image_front().screen_buffer
 
             # Remember that stack frame function also call our preprocess function.
             state, stacked_frames = stack_frames(stacked_frames, state, True)
@@ -649,12 +662,13 @@ with tf.Session() as sess:
         # rob.new_episode()
         rob.play_simulation()
         done = False
-        rob.set_phone_tilt(32, 100)
         # connect to prey robot
         # initialise class prey
         prey_controller = prey.Prey(robot=prey_robot)
         # start the thread prey, makes the prey move
         prey_controller.start()
+        rob.set_phone_tilt(32, 100)
+        time.sleep(0.1)
 
         while not rob.is_episode_finished():
             frame = rob.get_image_front().screen_buffer
@@ -668,6 +682,12 @@ with tf.Session() as sess:
             score = rob.get_total_reward()
         print("Score: ", score)
         totalScore += score
+
+        # stop the prey
+        prey_controller.stop()
+        prey_controller.join()
+        prey_robot.disconnect()
+
         rob.stop_world()
 
     print("TOTAL_SCORE", totalScore / 100.0)

@@ -37,7 +37,7 @@ classifier.add(Flatten())
 
 # Step 4 - Full Connection
 classifier.add(Dense(activation = "relu", units = 128)) #output_dim = 128
-classifier.add(Dense(activation = "softmax", units = 8)) #output_dim = 6
+classifier.add(Dense(activation = "softmax", units = 6)) #output_dim = 6
 
 # Compiling the CNN
 classifier.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['accuracy'])
@@ -61,17 +61,17 @@ test_set = test_datagen.flow_from_directory(
 )
 
 # Checkpoint
-filepath = "week4/models/CNN_Sim_weights{epoch:02d}-{val_loss:.2f}.hdf5"
+filepath = "week4/models/CNN_Sim_weights(2){epoch:02d}-{val_loss:.2f}.hdf5"
 checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=0, save_best_only=False, save_weights_only=False, mode='auto', period=1)
 callbacks_list = [checkpoint]
 
 # Train convolutional neural network
 history = classifier.fit_generator(
     training_set,
-    steps_per_epoch = 676, #Number of training images
-    epochs = 3, #1 epoch means neural network is trained on every training examples in 1 pass --> training cycle
-    validation_data = test_set,
-    validation_steps = 5, #suggestion: validation_steps = TotalvalidationSamples / ValidationBatchSize
+    steps_per_epoch = 657, #Number of training images
+    epochs = 10, #1 epoch means neural network is trained on every training examples in 1 pass --> training cycle
+    validation_data = test_set, #164 in test set
+    validation_steps = 4, #suggestion: validation_steps = TotalvalidationSamples / ValidationBatchSize
     callbacks = callbacks_list
 )
 
@@ -95,7 +95,7 @@ fig_Loss.suptitle('Loss History', fontsize=18)
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.show();
-fig_Loss.savefig('week4/figures/fig_Sim_LossHistory.png')
+fig_Loss.savefig('week4/figures/fig_Sim_LossHistory(2).png')
 
 # Visualize accuracy history
 fig_Acc = plt.figure()
@@ -106,15 +106,15 @@ fig_Acc.suptitle('Accuracy History', fontsize=18)
 plt.xlabel('Epoch')
 plt.ylabel('Accuracy')
 plt.show();
-fig_Acc.savefig('week4/figures/fig_Sim_AccHistory.png')
+fig_Acc.savefig('week4/figures/fig_Sim_AccHistory(2).png')
 
 # serialize model to JSON
 # the keras model which is trained is defined as 'model' in this example
 model_json = classifier.to_json()
-with open("week4/models/CNN_model.json", "w") as json_file:
+with open("week4/models/CNN_model(2).json", "w") as json_file:
     json_file.write(model_json)
 # serialize weights to HDF5
-classifier.save_weights("week4/models/CNN_weights.h5")
+classifier.save_weights("week4/models/CNN_weights(2).h5")
 print("Saved model to disk")
 
 # Test a random image
@@ -126,7 +126,7 @@ test_image = np.expand_dims(test_image, axis = 0) # Add fourth dimension
 test_image2 = image.load_img('week4/images/predict/img_p5-62.png', target_size = (64, 64))
 test_image2 = image.img_to_array(test_image2)
 test_image2 = np.expand_dims(test_image2, axis = 0)
-# Go 45 left
+# Go 20 left
 test_image3 = image.load_img('week4/images/predict/img_p6-55.png', target_size = (64, 64))
 test_image3 = image.img_to_array(test_image3)
 test_image3 = np.expand_dims(test_image3, axis = 0)
@@ -144,11 +144,11 @@ training_set.class_indices
 if result[0][0] == 1:
     prediction = 'straight'
 elif result[0][1] == 1 :
-    prediction = '45right'
+    prediction = '20right'
 elif result[0][2] == 1:
     prediction = '90right'
 elif result[0][3] == 1:
-    prediction = '45left'
+    prediction = '20left'
 elif result[0][4] == 1:
     prediction = '90left'
 elif result[0][5] == 1:
@@ -157,11 +157,11 @@ elif result[0][5] == 1:
 if result2[0][0] == 1:
     prediction2 = 'straight'
 elif result2[0][1] == 1 :
-    prediction2 = '45right'
+    prediction2 = '20right'
 elif result2[0][2] == 1:
     prediction2 = '90right'
 elif result2[0][3] == 1:
-    prediction2 = '45left'
+    prediction2 = '20left'
 elif result2[0][4] == 1:
     prediction2 = '90left'
 elif result2[0][5] == 1:
@@ -170,11 +170,11 @@ elif result2[0][5] == 1:
 if result3[0][0] == 1:
     prediction3 = 'straight'
 elif result3[0][1] == 1 :
-    prediction3 = '45right'
+    prediction3 = '20right'
 elif result3[0][2] == 1:
     prediction3 = '90right'
 elif result3[0][3] == 1:
-    prediction3 = '45left'
+    prediction3 = '20left'
 elif result3[0][4] == 1:
     prediction3 = '90left'
 elif result3[0][5] == 1:
