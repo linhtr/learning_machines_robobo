@@ -81,46 +81,46 @@ if __name__ == "__main__":
     # rob.set_phone_pan(11, 100)
     # rob.set_phone_tilt(26, 100)
 
-    time.sleep(1)
+    time.sleep(0.1)
 
     def actionStraightForward():
-        rob.move(25, 25, 1000)
-        time.sleep(0.1)
+        rob.move(50, 50, 1200)
+        # time.sleep(0.1)
         print("StraightForward")
 
     def action20Right():
         rob.move(5, -2, 500)
-        time.sleep(0.1)
+        # time.sleep(0.1)
         print("20Right")
 
     def action45Right():
         rob.move(5, -5, 400)
-        time.sleep(0.1)
+        # time.sleep(0.1)
         print("45Right")
 
     def action90Right():
         rob.move(20, -10, 600)
-        time.sleep(0.1)
+        # time.sleep(0.1)
         print("90Right")
 
     def action20Left():
         rob.move(-2, 5, 500)
-        time.sleep(0.1)
+        # time.sleep(0.1)
         print("20Left")
 
     def action45Left():
         rob.move(-5, 5, 400)
-        time.sleep(0.1)
+        # time.sleep(0.1)
         print("45Left")
 
     def action90Left():
         rob.move(-10, 20, 600)
-        time.sleep(0.1)
+        # time.sleep(0.1)
         print("90Left")
 
     def actionBackwards():
         rob.move(-10, -10, 500)
-        time.sleep(0.1)
+        # time.sleep(0.1)
         print("Backwards")
 
     # images = []
