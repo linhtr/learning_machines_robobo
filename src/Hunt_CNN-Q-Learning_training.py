@@ -2,6 +2,11 @@
 # TensorFlow and tf.keras
 import tensorflow as tf
 import robobo
+import prey
+import cv2
+import random
+import time
+
 from tensorflow import keras
 from keras.models import Sequential, model_from_json, load_model
 from keras.layers.convolutional import Conv2D
@@ -10,13 +15,11 @@ from keras.layers import Flatten
 from keras.layers import Dense
 from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import ModelCheckpoint
-import random
-import time
+
 from skimage import transform
 from skimage.color import rgb2gray
 from collections import deque
-from IPython.display import display
-from PIL import Image
+
 import numpy as np
 from keras.preprocessing import image
 import matplotlib
@@ -24,21 +27,23 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings('ignore')
-from OpenCV import cv2
+
+done = True
+
+def connect_VREP():
+    rob = robobo.SimulationRobobo().connect(address='130.37.247.69', port=19997)
+    prey_robot = robobo.SimulationRoboboPrey().connect(address='130.37.247.69', port=19989)
 
 def create_environment():
-    rob = robobo.SimulationRobobo().connect(address='10.107.1.100', port=19997)
-    prey_robot = robobo.SimulationRoboboPrey().connect(address='10.107.1.100', port=19989)
 
-    # if __name__ == "__main__":
+    connect_VREP()
 
     rob.play_simulation()
     rob.set_phone_tilt(32, 100)
-        # connect to prey robot
-
-        # initialise class prey
+    # connect to prey robot
+    # initialise class prey
     prey_controller = prey.Prey(robot=prey_robot)
-        # start the thread prey, makes the prey move
+    # start the thread prey, makes the prey move
     prey_controller.start()
 
 
@@ -56,12 +61,11 @@ def create_environment():
     return rob, possible_actions
 
 def test_environment():
-    rob = robobo.SimulationRobobo().connect(address='10.107.1.100', port=19997)
-    prey_robot = robobo.SimulationRoboboPrey().connect(address='10.107.1.100', port=19989)
-    rob.play_simulation()
-    rob.set_phone_tilt(32, 100)
-    prey_controller = prey.Prey(robot=prey_robot)
-    prey_controller.start()
+    connect_VREP()
+    # rob.play_simulation()
+    # rob.set_phone_tilt(32, 100)
+    # prey_controller = prey.Prey(robot=prey_robot)
+    # prey_controller.start()
 
     straight = [1, 0, 0, 0, 0, 0, 0, 0]
     right20 = [0, 1, 0, 0, 0, 0, 0, 0]
@@ -75,34 +79,73 @@ def test_environment():
 
     episodes = 10
     for i in range(episodes):
-        rob.new_episode()
-        while not rob.is_episode_finished():
-            state = rob.get_front_image()
-            img = state.screen_buffer
-            #misc = state.game_variables
-            action = random.choice(actions)
-            print(action)
-            reward = rob.move(action)
-            print ("\treward:", reward)
-            time.sleep(0.02)
+        # rob.new_episode()
+        rob.play_simulation()
+        rob.set_phone_tilt(32, 100)
+        prey_controller = prey.Prey(robot=prey_robot)
+        prey_controller.start()
+        # while not rob.is_episode_finished():
+        state = rob.get_front_image()
+        img = state.screen_buffer
+        #misc = state.game_variables
+        action = random.choice(actions)
+        print(action)
+        # reward = rob.move(action)
+        reward = rob_action(action)
+        print ("\treward:", reward)
+        time.sleep(0.02)
         print ("Result:", rob.get_total_reward())
         time.sleep(2)
     rob.stop_world()
 
+rob, possible_actions = create_environment()
+
 
 def preprocess_frame(frame):
-    gray = rgb2gray(frame)
+    # Greyscale frame
+    # gray = rgb2gray(frame)
 
     # Crop the screen (remove the roof because it contains no information)
-    cropped_frame = gray[30:-10, 30:-30]
+    # [Up: Down, Left: right]
+    # cropped_frame = frame[30:-10, 30:-30]
 
     # Normalize Pixel Values
-    normalized_frame = cropped_frame / 255.0
+    # normalized_frame = cropped_frame / 255.0
+
+    normalized_frame = frame /255.0
 
     # Resize
     preprocessed_frame = transform.resize(normalized_frame, [84, 84])
 
-    return preprocessed_frame
+    # load the preprocessed frame in cv2
+    image = cv2.imread(preprocessed_frame)
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+    # create NumPy arrays from the boundaries
+    lower = np.array([0, 70, 50], dtype="uint8")
+    upper = np.array([10, 255, 255], dtype="uint8")
+
+    # find the colors within the specified boundaries and apply the mask
+    mask = cv2.inRange(hsv, lower, upper)
+
+    # count number of red pixels
+    count_red = np.count_nonzero(mask)
+    # count total number of pixels
+    total_pixels = mask.size
+    # percentage red:
+    red_percentage = count_red / total_pixels
+
+    preprocessed_frame = cv2.bitwise_and(hsv, hsv, mask = mask)
+
+    return preprocessed_frame, red_percentage
+
+def reward(red_percentage):
+    if red_percentage >= 0.10:
+        return 10
+    elif 0.05 >= red_percentage > 0.10 :
+        return 5
+    else:
+        return 0
 
 
 stack_size = 4  # We stack 4 frames
@@ -110,11 +153,60 @@ stack_size = 4  # We stack 4 frames
 # Initialize deque with zero-images one array for each image
 stacked_frames = deque([np.zeros((84, 84), dtype=np.int) for i in range(stack_size)], maxlen=4)
 
+def rob_action(action):
+    if action == [1, 0, 0, 0, 0, 0, 0, 0]:
+        rob.move(20, 20, 400)
+        new_state = rob.get_image_front()
+        new_frame, perc = preprocess_frame(new_state)
+        reward = reward(perc)
+        return reward
+    elif action == [0, 1, 0, 0, 0, 0, 0, 0]:
+        rob.move(2, -2, 400)
+        new_state = rob.get_image_front()
+        new_frame, perc = preprocess_frame(new_state)
+        reward = reward(perc)
+        return reward
+    elif action == [0, 0, 1, 0, 0, 0, 0, 0]:
+        rob.move(5, -5, 400)
+        new_state = rob.get_image_front()
+        new_frame, perc = preprocess_frame(new_state)
+        reward = reward(perc)
+        return reward
+    elif action == [0, 0, 0, 1, 0, 0, 0, 0]:
+        rob.move(10, -10, 400)
+        new_state = rob.get_image_front()
+        new_frame, perc = preprocess_frame(new_state)
+        reward = reward(perc)
+        return reward
+    elif action == [0, 0, 0, 0, 1, 0, 0, 0]:
+        rob.move(-2, 2, 400)
+        new_state = rob.get_image_front()
+        new_frame, perc = preprocess_frame(new_state)
+        reward = reward(perc)
+        return reward
+    elif action == [0, 0, 0, 0, 0, 1, 0, 0]:
+        rob.move(-5, 5, 400)
+        new_state = rob.get_image_front()
+        new_frame, perc = preprocess_frame(new_state)
+        reward = reward(perc)
+        return reward
+    elif action == [0, 0, 0, 0, 0, 0, 1, 0]:
+        rob.move(-10, 10, 400)
+        new_state = rob.get_image_front()
+        new_frame, perc = preprocess_frame(new_state)
+        reward = reward(perc)
+        return reward
+    elif action == [0, 0, 0, 0, 0, 0, 0, 1]:
+        rob.move(-10, -10, 400)
+        new_state = rob.get_image_front()
+        new_frame, perc = preprocess_frame(new_state)
+        reward = reward(perc)
+        return reward
+
 
 def stack_frames(stacked_frames, state, is_new_episode):
     # Preprocess frame
-    frame = rob.get_image_front()
-    frame = preprocess_frame(state)
+    frame, red_percentage = preprocess_frame(state)
 
     if is_new_episode:
         # Clear our stacked_frames
@@ -178,7 +270,8 @@ class DQNetwork:
             # We create the placeholders
             # *state_size means that we take each elements of state_size in tuple hence is like if we wrote
             # [None, 84, 84, 4]
-            self.inputs_ = tf.placeholder(tf.float32, [None, *state_size], name="inputs")
+            # self.inputs_ = tf.placeholder(tf.float32, [None, *state_size], name="inputs")
+            self.inputs_ = tf.placeholder(tf.float32, [None, 84, 84, 4], name="inputs")
             self.actions_ = tf.placeholder(tf.float32, [None, 3], name="actions_")
 
             # Remember that target_Q is the R(s,a) + ymax Qhat(s', a')
@@ -301,7 +394,17 @@ class Memory():
 memory = Memory(max_size=memory_size)
 
 # Render the environment
-rob.new_episode()
+# rob.new_episode()
+connect_VREP()
+
+rob.play_simulation()
+done = False
+rob.set_phone_tilt(32, 100)
+# connect to prey robot
+# initialise class prey
+prey_controller = prey.Prey(robot=prey_robot)
+# start the thread prey, makes the prey move
+prey_controller.start()
 
 for i in range(pretrain_length):
     # If it's the first step
@@ -314,10 +417,11 @@ for i in range(pretrain_length):
     action = random.choice(possible_actions)
 
     # Get the rewards
-    reward = rob.move(action)
+    # reward = rob.move(action)
+    reward = rob_action(action)
 
     # Look if the episode is finished
-    done = rob.is_episode_finished()
+    # done = rob.is_episode_finished()
 
     # # If we're dead
     if done:
@@ -328,17 +432,27 @@ for i in range(pretrain_length):
         memory.add((state, action, reward, next_state, done))
 
         # Start a new episode
-        rob.new_episode()
+        # rob.new_episode()
+        connect_VREP()
+
+        rob.play_simulation()
+        done = False
+        rob.set_phone_tilt(32, 100)
+        # connect to prey robot
+        # initialise class prey
+        prey_controller = prey.Prey(robot=prey_robot)
+        # start the thread prey, makes the prey move
+        prey_controller.start()
 
         # First we need a state
-        state = rob.get_image_front().screen_buffer
+        state = rob.get_image_front()
 
         # Stack the frames
         state, stacked_frames = stack_frames(stacked_frames, state, True)
 
     else:
         # Get the next state
-        next_state = rob.get_image().screen_buffer
+        next_state = rob.get_image_front()
         next_state, stacked_frames = stack_frames(stacked_frames, next_state, False)
 
         # Add experience to memory
@@ -355,10 +469,7 @@ tf.summary.scalar("Loss", DQNetwork.loss)
 
 write_op = tf.summary.merge_all()
 
-"""
-This function will do the part
-With ϵ select a random action atat, otherwise select at=argmaxaQ(st,a)
-"""
+
 
 
 def predict_action(explore_start, explore_stop, decay_rate, decay_step, state, actions):
@@ -377,7 +488,7 @@ def predict_action(explore_start, explore_stop, decay_rate, decay_step, state, a
     else:
         # Get action from Q-network (exploitation)
         # Estimate the Qs values state
-        Qs = sess.run(DQNetwork.output, feed_dict={DQNetwork.inputs_: state.reshape((1, *state.shape))})
+        Qs = sess.run(DQNetwork.output, feed_dict={DQNetwork.inputs_: state.reshape((1, state.shape))})
 
         # Take the biggest Q value (= the best action)
         choice = np.argmax(Qs)
@@ -398,7 +509,10 @@ if training == True:
         decay_step = 0
 
         # Init the game
-        rob.play_simulation()
+        # rob.play_simulation()
+
+        connect_VREP()
+
 
         for episode in range(total_episodes):
             # Set step to 0
@@ -408,8 +522,17 @@ if training == True:
             episode_rewards = []
 
             # Make a new episode and observe the first state
-            rob.new_episode()
-            state = rob.get_image_front().screen_buffer
+            # rob.new_episode()
+            rob.play_simulation()
+            done = False
+            rob.set_phone_tilt(32, 100)
+            # connect to prey robot
+            # initialise class prey
+            prey_controller = prey.Prey(robot=prey_robot)
+            # start the thread prey, makes the prey move
+            prey_controller.start()
+
+            state = rob.get_image_front()
 
             # Remember that stack frame function also call our preprocess function.
             state, stacked_frames = stack_frames(stacked_frames, state, True)
@@ -425,10 +548,11 @@ if training == True:
                                                              possible_actions)
 
                 # Do the action
-                reward = rob.move(action)
+                # reward = rob.move(action)
+                reward = rob_action(action)
 
                 # Look if the episode is finished
-                done = rob.is_episode_finished()
+                # done = rob.is_episode_finished()
 
                 # Add the reward to total reward
                 episode_rewards.append(reward)
@@ -517,23 +641,37 @@ with tf.Session() as sess:
 
     # Load the model
     saver.restore(sess, "./week4/models/model.ckpt")
-    rob.play_simulation()
+
+    connect_VREP()
+
     for i in range(1):
 
-        rob.new_episode()
+        # rob.new_episode()
+        rob.play_simulation()
+        done = False
+        rob.set_phone_tilt(32, 100)
+        # connect to prey robot
+        # initialise class prey
+        prey_controller = prey.Prey(robot=prey_robot)
+        # start the thread prey, makes the prey move
+        prey_controller.start()
+
         while not rob.is_episode_finished():
             frame = rob.get_image_front().screen_buffer
             state = stack_frames(stacked_frames, frame)
             # Take the biggest Q value (= the best action)
-            Qs = sess.run(DQNetwork.output, feed_dict={DQNetwork.inputs_: state.reshape((1, *state.shape))})
+            Qs = sess.run(DQNetwork.output, feed_dict={DQNetwork.inputs_: state.reshape((1, state.shape))})
             action = np.argmax(Qs)
             action = possible_actions[int(action)]
-            rob.move(action)
+            # rob.move(action)
+            rob_action(action)
             score = rob.get_total_reward()
         print("Score: ", score)
         totalScore += score
+        rob.stop_world()
+
     print("TOTAL_SCORE", totalScore / 100.0)
-    rob.stop_world()
+
 
 
 
