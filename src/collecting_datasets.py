@@ -12,27 +12,28 @@ import numpy as np
 if __name__ == "__main__":
 
     # connect to Robobo
-    rob = robobo.SimulationRobobo().connect(address='10.107.1.100', port=19997)
-    # rob = robobo.HardwareRobobo(camera=True).connect(address="192.168.1.16")
+    # rob = robobo.SimulationRobobo().connect(address='10.107.1.100', port=19997)
+    rob = robobo.HardwareRobobo(camera=True).connect(address="192.168.1.21")
 
-    rob.play_simulation()
+    # rob.play_simulation()
 
     # connect to prey robot
-    prey_robot = robobo.SimulationRoboboPrey().connect(address='10.107.1.100', port=19989)
+    # prey_robot = robobo.SimulationRoboboPrey().connect(address='10.107.1.100', port=19989)
     # initialise class prey
-    prey_controller = prey.Prey(robot=prey_robot)
+    # prey_controller = prey.Prey(robot=prey_robot)
     # start the thread prey, makes the prey move
-    prey_controller.start()
+    # prey_controller.start()
 
     # rob.set_phone_pan(343, 100)
-    # rob.set_phone_tilt(109, 100)
-    rob.set_phone_tilt(32, 100)
+    rob.set_phone_tilt(109, 100)
+
+    # rob.set_phone_tilt(32, 100)
 
     # plat op zijn rug
     # rob.set_phone_pan(11, 100)
     # rob.set_phone_tilt(26, 100)
 
-    time.sleep(0.1)
+    # time.sleep(0.1)
 
     class Neural_Network(object):
         def __init__(self):
@@ -79,28 +80,30 @@ if __name__ == "__main__":
 
 
     def actionStraightForward():
-        rob.move(20, 20, 400)
-        # rob.move(20, 20, 1000)
+        # rob.move(20, 20, 400)
+        rob.move(40, 40, 1000)
         print("StraightForward")
 
     def action45Right():
-        rob.move(10, -5, 400)
+        # rob.move(10, -5, 400)
+        rob.move(5, -5, 1000)
         print("45Right")
 
     def action90Right():
-        rob.move(10, -10, 400)
+        rob.move(10, -10, 1000)
         print("90Right")
 
     def action45Left():
-        rob.move(-5, 10, 400)
+        # rob.move(-5, 10, 400)
+        rob.move(-5, 5, 1000)
         print("45Left")
 
     def action90Left():
-        rob.move(-10, 10, 400)
+        rob.move(-10, 10, 1000)
         print("90Left")
 
     def actionBackwards():
-        rob.move(-10, -10, 200)
+        rob.move(-10, -10, 1000)
         print("Backwards")
 
 
@@ -111,54 +114,54 @@ if __name__ == "__main__":
         image = rob.get_image_front()
         images.append(image)
         for i, image in enumerate(images):
-            cv2.imwrite('./src/week4/images/dataset/img_p11-' + str(i) + ".png", image)
+            cv2.imwrite('./src/week4/images/HW_dataset/img_p12-' + str(i) + ".png", image)
 
-        # Scaling IR signal
-        x = np.array((rob.read_irs()), dtype=float)
-        if np.amax(x, axis=0) != 0:
-            x = x / np.amax(x, axis=0)
-
-        NN = Neural_Network()
-        o = NN.forward(x)
-
-        # Neural_Network()
-        NN.forward(x)
-
-
-        if 0 <= o < 0.1667:
-            actionStraightForward()
+        # # Scaling IR signal
+        # x = np.array((rob.read_irs()), dtype=float)
+        # if np.amax(x, axis=0) != 0:
+        #     x = x / np.amax(x, axis=0)
+        #
+        # NN = Neural_Network()
+        # o = NN.forward(x)
+        #
+        # # Neural_Network()
+        # NN.forward(x)
+        #
+        #
+        # if 0 <= o < 0.1667:
+        #     actionStraightForward()
+        #     # time.sleep(0.1)
+        #
+        # elif 0.1667 <= o < 0.3334:
+        #     action45Right()
+        #     # time.sleep(0.1)
+        #
+        # elif 0.3334 <= o < 0.5:
+        #     action90Right()
+        #     # time.sleep(0.1)
+        #
+        # elif 0.5 <= o < 0.6668:
+        #     action45Left()
+        #     # time.sleep(0.1)
+        #
+        # elif 0.6668 <= o <= 0.8335:
+        #     action90Left()
+        #     # time.sleep(0.1)
+        #
+        # elif 0.8335 <= o <= 1:
+        #     actionBackwards()
             # time.sleep(0.1)
 
-        elif 0.1667 <= o < 0.3334:
-            action45Right()
-            # time.sleep(0.1)
-
-        elif 0.3334 <= o < 0.5:
-            action90Right()
-            # time.sleep(0.1)
-
-        elif 0.5 <= o < 0.6668:
-            action45Left()
-            # time.sleep(0.1)
-
-        elif 0.6668 <= o <= 0.8335:
-            action90Left()
-            # time.sleep(0.1)
-
-        elif 0.8335 <= o <= 1:
-            actionBackwards()
-            # time.sleep(0.1)
-
-        print("Current IRS: \n" + str(rob.read_irs()))
-        print("Predicted Output: \n" + str(o))
+        # print("Current IRS: \n" + str(rob.read_irs()))
+        # print("Predicted Output: \n" + str(o))
 
     # pause the simulation and read the collected food
     # rob.pause_simulation()
     # print("Robobo collected {} food".format(rob.collected_food()))
 
     # stop the prey
-    prey_controller.stop()
-    prey_controller.join()
+    # prey_controller.stop()
+    # prey_controller.join()
 
     # Stopping the simulation resets the environment
-    rob.stop_world()
+    # rob.stop_world()
