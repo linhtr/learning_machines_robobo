@@ -1,11 +1,13 @@
 #!/usr/bin/env python2
 from __future__ import print_function
 import robobo
+import prey
 import cv2
 import sys
 import signal
 import time
 import os
+
 
 # TensorFlow and tf.keras
 import tensorflow as tf
@@ -27,6 +29,10 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+
+def terminate_program(signal_number, frame):
+    print("Ctrl-C received, terminating program")
+    sys.exit(1)
 
 if __name__ == "__main__":
 
@@ -51,16 +57,18 @@ if __name__ == "__main__":
     # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)07-0.85.hdf5')
     # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)08-1.22.hdf5')
     # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)09-0.98.hdf5')
-    loaded_model = load_model('./src/week4/models/CNN_Sim_weights02-0.62.hdf5')
+    loaded_model = load_model('./src/week4/models/CNN_Sim_weights(2)08-0.81.hdf5')
 
-    rob = robobo.SimulationRobobo().connect(address='130.37.247.69', port=19997)
+    signal.signal(signal.SIGINT, terminate_program)
+
+    rob = robobo.SimulationRobobo().connect(address='192.168.1.101', port=19997)
 
     rob.play_simulation()
 
     # connect to prey robot
-    prey_robot = robobo.SimulationRoboboPrey().connect(address='10.107.1.100', port=19989)
+    prey_robot = robobo.SimulationRoboboPrey().connect(address='192.168.1.101', port=19989)
     # initialise class prey
-    prey_controller = prey.Prey(robot=prey_robot)
+    prey_controller = prey.Prey(robot=prey_robot, level=4)
     # start the thread prey, makes the prey move
     prey_controller.start()
 
@@ -72,30 +80,46 @@ if __name__ == "__main__":
     # rob.set_phone_pan(11, 100)
     # rob.set_phone_tilt(26, 100)
 
-    time.sleep(0.1)
+    time.sleep(1)
 
     def actionStraightForward():
-        rob.move(20, 20, 400)
+        rob.move(25, 25, 1000)
+        time.sleep(0.1)
         print("StraightForward")
+
+    def action20Right():
+        rob.move(5, -2, 500)
+        time.sleep(0.1)
+        print("20Right")
 
     def action45Right():
         rob.move(5, -5, 400)
+        time.sleep(0.1)
         print("45Right")
 
     def action90Right():
-        rob.move(10, -10, 400)
+        rob.move(20, -10, 600)
+        time.sleep(0.1)
         print("90Right")
+
+    def action20Left():
+        rob.move(-2, 5, 500)
+        time.sleep(0.1)
+        print("20Left")
 
     def action45Left():
         rob.move(-5, 5, 400)
+        time.sleep(0.1)
         print("45Left")
 
     def action90Left():
-        rob.move(-10, 10, 400)
+        rob.move(-10, 20, 600)
+        time.sleep(0.1)
         print("90Left")
 
     def actionBackwards():
-        rob.move(-10, -10, 200)
+        rob.move(-10, -10, 500)
+        time.sleep(0.1)
         print("Backwards")
 
     # images = []
@@ -111,8 +135,8 @@ if __name__ == "__main__":
         #     cv2.imwrite('./src/week3/images/run/img-' + str(i) + ".png", predict_image)
 
         # temporarily save image to computer and load image
-        cv2.imwrite('./src/week3/images/run/img-0.png', predict_image)
-        predict_image = cv2.imread('./src/week3/images/run/img-0.png')
+        cv2.imwrite('./src/week4/images/run/img-0.png', predict_image)
+        predict_image = cv2.imread('./src/week4/images/run/img-0.png')
         # print(predict_image)
         predict_image = cv2.resize(predict_image, (64, 64))
         predict_image = predict_image[..., ::-1].astype(np.float32) / 255.0
@@ -127,14 +151,14 @@ if __name__ == "__main__":
             prediction = 'straight'
             actionStraightForward()
         elif output[0] == 1:
-            prediction = '45right'
-            action45Right()
+            prediction = '20right'
+            action20Right()
         elif output[0] == 2:
             prediction = '90right'
             action90Right()
         elif output[0] == 3:
-            prediction = '45left'
-            action45Left()
+            prediction = '20left'
+            action20Left()
         elif output[0] == 4:
             prediction = '90left'
             action90Left()
@@ -144,10 +168,14 @@ if __name__ == "__main__":
 
         # Remove temporarily image from computer
         try:
-            os.remove('./src/week3/images/run/img-0.png')
+            os.remove('./src/week4/images/run/img-0.png')
         except:
             pass
 
+    # stop the prey
+    prey_controller.stop()
+    prey_controller.join()
+    # prey_robot.disconnect()
 
     # Stopping the simulation resets the environment
     rob.stop_world()
