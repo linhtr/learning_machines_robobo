@@ -2,6 +2,7 @@
 from __future__ import print_function
 import robobo
 import prey
+from cv2 import *
 import cv2
 import sys
 import signal
@@ -61,12 +62,12 @@ if __name__ == "__main__":
 
     signal.signal(signal.SIGINT, terminate_program)
 
-    rob = robobo.SimulationRobobo().connect(address='192.168.1.101', port=19997)
+    rob = robobo.SimulationRobobo().connect(address='192.168.1.14', port=19997)
 
     rob.play_simulation()
 
     # connect to prey robot
-    prey_robot = robobo.SimulationRoboboPrey().connect(address='192.168.1.101', port=19989)
+    prey_robot = robobo.SimulationRoboboPrey().connect(address='192.168.1.14', port=19989)
     # initialise class prey
     prey_controller = prey.Prey(robot=prey_robot, level=4)
     # start the thread prey, makes the prey move
@@ -135,8 +136,11 @@ if __name__ == "__main__":
         #     cv2.imwrite('./src/week3/images/run/img-' + str(i) + ".png", predict_image)
 
         # temporarily save image to computer and load image
-        cv2.imwrite('./src/week4/images/run/img-0.png', predict_image)
-        predict_image = cv2.imread('./src/week4/images/run/img-0.png')
+        # cv2.imwrite('./src/week4/images/run/img-0.png', predict_image)
+        # predict_image = cv2.imread('./src/week4/images/run/img-0.png')
+
+        # predict_image = cv2.imread(predict_image)
+
         # print(predict_image)
         predict_image = cv2.resize(predict_image, (64, 64))
         predict_image = predict_image[..., ::-1].astype(np.float32) / 255.0
@@ -167,15 +171,15 @@ if __name__ == "__main__":
             actionBackwards()
 
         # Remove temporarily image from computer
-        try:
-            os.remove('./src/week4/images/run/img-0.png')
-        except:
-            pass
+        # try:
+        #     os.remove('./src/week4/images/run/img-0.png')
+        # except:
+        #     pass
 
     # stop the prey
     prey_controller.stop()
     prey_controller.join()
-    # prey_robot.disconnect()
+    prey_robot.disconnect()
 
     # Stopping the simulation resets the environment
     rob.stop_world()
