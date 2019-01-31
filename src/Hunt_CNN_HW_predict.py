@@ -48,12 +48,12 @@ if __name__ == "__main__":
     # loaded_model.save('./src/week3/models/model_num.hdf5')
     # loaded_model = load_model('./src/week3/models/model_num.hdf5')
 
-    loaded_model = load_model('./src/week4/models/CNN_HW_weights(2)02-0.00.hdf5')
+    loaded_model = load_model('./src/week4/models/CNN_HW_weights(10)04-0.33.hdf5')
     print("Loaded model from disk")
 
     signal.signal(signal.SIGINT, terminate_program)
 
-    rob = robobo.HardwareRobobo(camera=True).connect(address="192.168.1.21")
+    rob = robobo.HardwareRobobo(camera=True).connect(address="192.168.1.3")
 
     # Connect to prey robot
     # prey_robot = robobo.SimulationRoboboPrey().connect(address='192.168.1.14', port=19989)
@@ -104,17 +104,17 @@ if __name__ == "__main__":
         print("Backwards")
 
 
-    i = 0
+    # i = 0
 
-    for i in range(100):
+    for i in range(1000):
 
         # start_time = time.time()
         predict_image = rob.get_image_front()[100:]
         # print(predict_image.size)
 
         # Use this to save images for database
-        cv2.imwrite('./src/week4/images/HW_dataset/img_p29-{}.png'.format(i), predict_image)
-        i = i+1
+        # cv2.imwrite('./src/week4/images/HW_dataset/img_p29-{}.png'.format(i), predict_image)
+        # i = i+1
 
         predict_image = cv2.resize(predict_image, (64, 64))
         predict_image = predict_image[..., ::-1].astype(np.float32) / 255.0

@@ -12,6 +12,7 @@ from keras.layers import Dense
 from keras.preprocessing.image import ImageDataGenerator
 from keras.preprocessing import image
 from keras.callbacks import ModelCheckpoint
+from keras.optimizers import Adam
 
 from IPython.display import display
 from PIL import Image
@@ -64,7 +65,7 @@ classifier.add(Dense(activation = "relu", units = 128)) #output_dim = 128
 classifier.add(Dense(activation = "softmax", units = 6)) #output_dim = 6
 
 # Compiling the CNN
-classifier.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['accuracy'])
+classifier.compile(optimizer = Adam(lr=0.00001), loss = 'categorical_crossentropy', metrics = ['accuracy'])
 
 # Fitting the CNN to the images
 train_datagen = ImageDataGenerator(rescale=1./255)
@@ -92,17 +93,17 @@ d_class_weights = dict(enumerate(class_weights))
 print("class_weights:", d_class_weights)
 
 # Checkpoint
-filepath = "week4/models/CNN_HW_weights(6){epoch:02d}-{val_loss:.2f}.hdf5"
+filepath = "week4/models/CNN_HW_weights(15){epoch:02d}-{val_loss:.2f}.hdf5"
 checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=0, save_best_only=False, save_weights_only=False, mode='auto', period=1)
 callbacks_list = [checkpoint]
 
 # Train convolutional neural network
 history = classifier.fit_generator(
     training_set,
-    steps_per_epoch = 1127, #Number of training images
+    steps_per_epoch = 1244, #Number of training images
     epochs = 10, #1 epoch means neural network is trained on every training examples in 1 pass --> training cycle
     validation_data = test_set, #108 in test set
-    validation_steps = 279, #suggestion: validation_steps = TotalvalidationSamples / ValidationBatchSize
+    validation_steps = 40, #suggestion: validation_steps = TotalvalidationSamples / ValidationBatchSize
     callbacks = callbacks_list,
     class_weight = d_class_weights,
     verbose = 1 # 0 = No output, 1 = output
@@ -128,7 +129,7 @@ fig_Loss.suptitle('Loss History', fontsize=18)
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.show();
-fig_Loss.savefig('week4/figures/fig_HW_LossHistory(6).png')
+fig_Loss.savefig('week4/figures/fig_HW_LossHistory(15).png')
 
 # Visualize accuracy history
 fig_Acc = plt.figure()
@@ -139,7 +140,7 @@ fig_Acc.suptitle('Accuracy History', fontsize=18)
 plt.xlabel('Epoch')
 plt.ylabel('Accuracy')
 plt.show();
-fig_Acc.savefig('week4/figures/fig_HW_AccHistory(6).png')
+fig_Acc.savefig('week4/figures/fig_HW_AccHistory(15).png')
 
 # serialize model to JSON
 # the keras model which is trained is defined as 'model' in this example
