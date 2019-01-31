@@ -75,25 +75,25 @@ if __name__ == "__main__":
         # time.sleep(0.1)
         print("StraightForward")
 
-    def action20Right():
-        rob.move(10, -5, 1000)
+    def action30Right():
+        rob.move(15, -5, 1000)
         # rob.move(20, -5, 1000)
         # time.sleep(0.1)
         print("20Right")
 
     def action90Right():
-        rob.move(50, -5, 1000)
+        rob.move(55, -5, 1000)
         # time.sleep(0.1)
         print("90Right")
 
-    def action20Left():
-        rob.move(-5, 10, 1000)
+    def action30Left():
+        rob.move(-15, 5, 1000)
         # rob.move(-5, 20, 1000)
         # time.sleep(0.1)
         print("20Left")
 
-    def action90Left():
-        rob.move(-5, 50, 1000)
+    def action120Left():
+        rob.move(-5, 90, 1000)
         # time.sleep(0.1)
         print("90Left")
 
@@ -133,17 +133,17 @@ if __name__ == "__main__":
             prediction = 'straight'
             actionStraightForward()
         elif output[0] == 1:
-            prediction = '20right'
-            action20Right()
+            prediction = '30right'
+            action30Right()
         elif output[0] == 2:
             prediction = '90right'
             action90Right()
         elif output[0] == 3:
-            prediction = '20left'
-            action20Left()
+            prediction = '30left'
+            action30Left()
         elif output[0] == 4:
-            prediction = '90left'
-            action90Left()
+            prediction = '120left'
+            action120Left()
         elif output[0] == 5:
             prediction = 'back'
             actionBackwards()
