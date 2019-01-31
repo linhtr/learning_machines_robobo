@@ -8,7 +8,7 @@ import sys
 import signal
 import time
 import os
-
+import datetime
 
 # TensorFlow and tf.keras
 import tensorflow as tf
@@ -48,113 +48,86 @@ if __name__ == "__main__":
     # loaded_model.save('./src/week3/models/model_num.hdf5')
     # loaded_model = load_model('./src/week3/models/model_num.hdf5')
 
-    # Checkpoint models
-    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)01-0.56.hdf5')
-    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)02-0.48.hdf5')
-    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)03-0.47.hdf5')
-    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)04-0.80.hdf5')
-    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)05-0.55.hdf5')
-    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)06-0.76.hdf5')
-    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)07-0.85.hdf5')
-    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)08-1.22.hdf5')
-    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)09-0.98.hdf5')
-    loaded_model = load_model('./src/week4/models/CNN_Sim_weights(2)08-0.81.hdf5')
+    loaded_model = load_model('./src/week4/models/CNN_HW_weights(2)02-0.00.hdf5')
+    print("Loaded model from disk")
 
     signal.signal(signal.SIGINT, terminate_program)
 
-    # rob = robobo.SimulationRobobo().connect(address='192.168.1.14', port=19997)
     rob = robobo.HardwareRobobo(camera=True).connect(address="192.168.1.21")
 
-    # rob.play_simulation()
-
-    # connect to prey robot
+    # Connect to prey robot
     # prey_robot = robobo.SimulationRoboboPrey().connect(address='192.168.1.14', port=19989)
-    prey_robot = robobo.HardwareRobobo().connect(address="192.168.1.7")
+    # prey_robot = robobo.HardwareRobobo().connect(address="192.168.1.7")
     # initialise class prey
-    prey_controller = prey.Prey(robot=prey_robot, level=4)
+    # prey_controller = prey.Prey(robot=prey_robot, level=4)
     # start the thread prey, makes the prey move
-    prey_controller.start()
+    # prey_controller.start()
 
-    # real world
+    # Real world
     # rob.set_phone_pan(343, 100)
     rob.set_phone_tilt(109, 100)
-
-    # simulator
-    # rob.set_phone_tilt(32, 100)
-
-    # plat op zijn rug
-    # rob.set_phone_pan(11, 100)
-    # rob.set_phone_tilt(26, 100)
 
     time.sleep(0.1)
 
     def actionStraightForward():
-        rob.move(50, 50, 1200)
+        rob.move(50, 50, 1000)
+        # rob.move(20, 20, 2000)
         # time.sleep(0.1)
         print("StraightForward")
 
     def action20Right():
-        rob.move(5, -2, 500)
+        rob.move(10, -5, 1000)
+        # rob.move(20, -5, 1000)
         # time.sleep(0.1)
         print("20Right")
 
-    def action45Right():
-        rob.move(5, -5, 400)
-        # time.sleep(0.1)
-        print("45Right")
-
     def action90Right():
-        rob.move(20, -10, 600)
+        rob.move(50, -5, 1000)
         # time.sleep(0.1)
         print("90Right")
 
     def action20Left():
-        rob.move(-2, 5, 500)
+        rob.move(-5, 10, 1000)
+        # rob.move(-5, 20, 1000)
         # time.sleep(0.1)
         print("20Left")
 
-    def action45Left():
-        rob.move(-5, 5, 400)
-        # time.sleep(0.1)
-        print("45Left")
-
     def action90Left():
-        rob.move(-10, 20, 600)
+        rob.move(-5, 50, 1000)
         # time.sleep(0.1)
         print("90Left")
 
     def actionBackwards():
-        rob.move(-10, -10, 500)
+        rob.move(-20, -20, 1000)
+        # rob.move(-15, -15, 2000)
         # time.sleep(0.1)
         print("Backwards")
 
-    images = []
+
+    i = 0
 
     for i in range(100):
 
-        predict_image = rob.get_image_front()
-        # print(predict_image)
+        # start_time = time.time()
+        predict_image = rob.get_image_front()[100:]
+        # print(predict_image.size)
 
         # Use this to save images for database
-        images.append(predict_image)
-        for i, predict_image in enumerate(images):
-            cv2.imwrite('./src/week4/images/HW_dataset/img_p1-' + str(i) + ".png", predict_image)
+        cv2.imwrite('./src/week4/images/HW_dataset/img_p29-{}.png'.format(i), predict_image)
+        i = i+1
 
-        # temporarily save image to computer and load image
-        # cv2.imwrite('./src/week4/images/run/img-0.png', predict_image)
-        # predict_image = cv2.imread('./src/week4/images/run/img-0.png')
-
-        # predict_image = cv2.imread(predict_image)
-
-        # print(predict_image)
         predict_image = cv2.resize(predict_image, (64, 64))
         predict_image = predict_image[..., ::-1].astype(np.float32) / 255.0
         predict_image = image.img_to_array(predict_image)
         predict_image = np.expand_dims(predict_image, axis=0)  # Add fourth dimension
+        # print("Preparing image took:\t{}".format(time.time() - start_time))
 
-        # predicted output
+        # Predicted output
+        # start_time = time.time()
         output = loaded_model.predict_classes(predict_image)
         print("Predicted output:" + str(output))
+        # print("Predicting image took:\t{}".format(time.time() - start_time))
+
 
         if output[0] == 0:
             prediction = 'straight'
@@ -174,17 +147,3 @@ if __name__ == "__main__":
         elif output[0] == 5:
             prediction = 'back'
             actionBackwards()
-
-        # Remove temporarily image from computer
-        # try:
-        #     os.remove('./src/week4/images/run/img-0.png')
-        # except:
-        #     pass
-
-    # stop the prey
-    # prey_controller.stop()
-    # prey_controller.join()
-    # prey_robot.disconnect()
-
-    # Stopping the simulation resets the environment
-    # rob.stop_world()
