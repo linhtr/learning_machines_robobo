@@ -49,16 +49,23 @@ if __name__ == "__main__":
     # loaded_model = load_model('./src/week3/models/model_num.hdf5')
 
     # Checkpoint models
-    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)01-0.56.hdf5')
-    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)02-0.48.hdf5')
-    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)03-0.47.hdf5')
-    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)04-0.80.hdf5')
-    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)05-0.55.hdf5')
-    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)06-0.76.hdf5')
-    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)07-0.85.hdf5')
-    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)08-1.22.hdf5')
-    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(10)09-0.98.hdf5')
-    loaded_model = load_model('./src/week4/models/CNN_Sim_weights(2)08-0.81.hdf5')
+    loaded_model = load_model('./src/week3/models/CNN_Sim_weights(6)01-0.93.hdf5')
+    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(6)02-0.72.hdf5')
+    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(6)03-0.61.hdf5')
+    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(6)04-0.56.hdf5')
+    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(6)05-0.55.hdf5')
+    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(6)06-0.54.hdf5')
+    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(6)07-0.52.hdf5')
+    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(6)08-0.52.hdf5')
+    # loaded_model = load_model('./src/week3/models/CNN_Sim_weights(6)09-0.52.hdf5')
+    # loaded_model = load_model('./src/week4/models/CNN_Sim_weights(6)10-0.51.hdf5') # val_loss = 0.5087, val_acc = 0.8293
+    # loaded_model = load_model('./src/week4/models/CNN_Sim_weights(6)11-0.51.hdf5') # val_loss = 0.5109, val_acc = 0.8476
+    # loaded_model = load_model('./src/week4/models/CNN_Sim_weights(6)12-0.52.hdf5')
+    # loaded_model = load_model('./src/week4/models/CNN_Sim_weights(6)13-0.53.hdf5')
+    # loaded_model = load_model('./src/week4/models/CNN_Sim_weights(6)14-0.54.hdf5')
+    # loaded_model = load_model('./src/week4/models/CNN_Sim_weights(6)15-0.54.hdf5')
+
+
 
     signal.signal(signal.SIGINT, terminate_program)
 
@@ -123,23 +130,17 @@ if __name__ == "__main__":
         # time.sleep(0.1)
         print("Backwards")
 
-    # images = []
+
+    # i = 0
 
     for i in range(100):
 
         predict_image = rob.get_image_front()
-        # print(predict_image)
+        # print(predict_image.size)
 
         # Use this to save images for database
-        # images.append(predict_image)
-        # for i, predict_image in enumerate(images):
-        #     cv2.imwrite('./src/week3/images/run/img-' + str(i) + ".png", predict_image)
-
-        # temporarily save image to computer and load image
-        # cv2.imwrite('./src/week4/images/run/img-0.png', predict_image)
-        # predict_image = cv2.imread('./src/week4/images/run/img-0.png')
-
-        # predict_image = cv2.imread(predict_image)
+        # cv2.imwrite('./src/week4/images/dataset/img_p29-{}.png'.format(i), predict_image)
+        # i = i+1
 
         # print(predict_image)
         predict_image = cv2.resize(predict_image, (64, 64))
@@ -169,12 +170,6 @@ if __name__ == "__main__":
         elif output[0] == 5:
             prediction = 'back'
             actionBackwards()
-
-        # Remove temporarily image from computer
-        # try:
-        #     os.remove('./src/week4/images/run/img-0.png')
-        # except:
-        #     pass
 
     # stop the prey
     prey_controller.stop()

@@ -11,11 +11,13 @@ from keras.layers import Flatten
 from keras.layers import Dense
 from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import ModelCheckpoint
+from keras.optimizers import Adam
 
 from IPython.display import display
 from PIL import Image
 
 import numpy as np
+from sklearn.utils.class_weight import compute_class_weight
 from keras.preprocessing import image
 import matplotlib
 matplotlib.use('Agg')
@@ -40,7 +42,7 @@ classifier.add(Dense(activation = "relu", units = 128)) #output_dim = 128
 classifier.add(Dense(activation = "softmax", units = 6)) #output_dim = 6
 
 # Compiling the CNN
-classifier.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['accuracy'])
+classifier.compile(optimizer = Adam(lr=0.00001), loss = 'categorical_crossentropy', metrics = ['accuracy'])
 
 # Fitting the CNN to the images
 train_datagen = ImageDataGenerator(rescale=1./255)
@@ -50,6 +52,7 @@ training_set = train_datagen.flow_from_directory(
     'week4/images/dataset/training_set',
     target_size = (64, 64),
     batch_size = 32, #Number of observations per batch
+    shuffle=True,
     class_mode = 'categorical'
 )
 
@@ -57,11 +60,17 @@ test_set = test_datagen.flow_from_directory(
     'week4/images/dataset/test_set',
     target_size = (64, 64),
     batch_size = 32, #Number of observations per batch
+    shuffle=True,
     class_mode = 'categorical'
 )
 
+# Set class weights for imbalanced classes (n_total_samples / n_class_samples)
+class_weights = compute_class_weight('balanced', np.unique(training_set.classes), training_set.classes)
+d_class_weights = dict(enumerate(class_weights))
+print("class_weights:", d_class_weights)
+
 # Checkpoint
-filepath = "week4/models/CNN_Sim_weights(2){epoch:02d}-{val_loss:.2f}.hdf5"
+filepath = "week4/models/CNN_Sim_weights(6){epoch:02d}-{val_loss:.2f}.hdf5"
 checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=0, save_best_only=False, save_weights_only=False, mode='auto', period=1)
 callbacks_list = [checkpoint]
 
@@ -69,10 +78,12 @@ callbacks_list = [checkpoint]
 history = classifier.fit_generator(
     training_set,
     steps_per_epoch = 657, #Number of training images
-    epochs = 10, #1 epoch means neural network is trained on every training examples in 1 pass --> training cycle
+    epochs = 15, #1 epoch means neural network is trained on every training examples in 1 pass --> training cycle
     validation_data = test_set, #164 in test set
-    validation_steps = 4, #suggestion: validation_steps = TotalvalidationSamples / ValidationBatchSize
-    callbacks = callbacks_list
+    validation_steps = 30, #suggestion: validation_steps = TotalvalidationSamples / ValidationBatchSize
+    callbacks = callbacks_list,
+    class_weight = d_class_weights,
+    verbose = 1 # 0 = No output, 1 = output
 )
 
 # Get training and test loss histories
@@ -95,7 +106,7 @@ fig_Loss.suptitle('Loss History', fontsize=18)
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.show();
-fig_Loss.savefig('week4/figures/fig_Sim_LossHistory(2).png')
+fig_Loss.savefig('week4/figures/fig_Sim_LossHistory(6).png')
 
 # Visualize accuracy history
 fig_Acc = plt.figure()
@@ -106,15 +117,15 @@ fig_Acc.suptitle('Accuracy History', fontsize=18)
 plt.xlabel('Epoch')
 plt.ylabel('Accuracy')
 plt.show();
-fig_Acc.savefig('week4/figures/fig_Sim_AccHistory(2).png')
+fig_Acc.savefig('week4/figures/fig_Sim_AccHistory(6).png')
 
 # serialize model to JSON
 # the keras model which is trained is defined as 'model' in this example
-model_json = classifier.to_json()
-with open("week4/models/CNN_model(2).json", "w") as json_file:
-    json_file.write(model_json)
-# serialize weights to HDF5
-classifier.save_weights("week4/models/CNN_weights(2).h5")
+# model_json = classifier.to_json()
+# with open("week4/models/CNN_model(2).json", "w") as json_file:
+#     json_file.write(model_json)
+# # serialize weights to HDF5
+# classifier.save_weights("week4/models/CNN_weights(2).h5")
 print("Saved model to disk")
 
 # Test a random image
@@ -126,7 +137,7 @@ test_image = np.expand_dims(test_image, axis = 0) # Add fourth dimension
 test_image2 = image.load_img('week4/images/predict/img_p5-62.png', target_size = (64, 64))
 test_image2 = image.img_to_array(test_image2)
 test_image2 = np.expand_dims(test_image2, axis = 0)
-# Go 20 left
+# Go 20 left / 90 left
 test_image3 = image.load_img('week4/images/predict/img_p6-55.png', target_size = (64, 64))
 test_image3 = image.img_to_array(test_image3)
 test_image3 = np.expand_dims(test_image3, axis = 0)

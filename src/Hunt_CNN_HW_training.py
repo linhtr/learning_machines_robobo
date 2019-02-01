@@ -22,7 +22,6 @@ from sklearn.utils.class_weight import compute_class_weight
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import glob
 
 # Preprocess images from datasets (cut off 100pixels from top)
 # for i in range(6):
@@ -102,7 +101,7 @@ history = classifier.fit_generator(
     training_set,
     steps_per_epoch = 1244, #Number of training images
     epochs = 10, #1 epoch means neural network is trained on every training examples in 1 pass --> training cycle
-    validation_data = test_set, #108 in test set
+    validation_data = test_set, #311 in test set
     validation_steps = 40, #suggestion: validation_steps = TotalvalidationSamples / ValidationBatchSize
     callbacks = callbacks_list,
     class_weight = d_class_weights,
